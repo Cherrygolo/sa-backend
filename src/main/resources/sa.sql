@@ -1,24 +1,24 @@
 CREATE DATABASE sa;
 
-# Utilisation de la BDD sa pour y insérer les tables 
+# Use the sa database to insert tables 
 
 USE sa;
 
-# Création table client donnant son avis, avec ID généré automatiquement et adresse email unique
+# Create a table for customers to give their opinions, with automatically generated IDs and unique email addresses
 
-CREATE TABLE client (
+CREATE TABLE customer (
     id INTEGER PRIMARY KEY NOT NULL AUTO_INCREMENT,
     email VARCHAR(50) UNIQUE,
-    telephone VARCHAR(15)
+    phone VARCHAR(15)
 );
 
-# Création table sentiment pour contenir le sentiment (texte, type) de l utilisateur (client_id)
+# Create a review table to contain the review (text, type) of the user (customer_id)
 
-CREATE TABLE sentiment (
+CREATE TABLE review (
     id INTEGER PRIMARY KEY NOT NULL AUTO_INCREMENT,
-    texte VARCHAR(50),
+    text VARCHAR(50),
     type VARCHAR(10),
-    client_id INTEGER,
-    CONSTRAINT fk_sentiment_client FOREIGN KEY (client_id) REFERENCES client(id)
+    customer_id INTEGER,
+    CONSTRAINT fk_review_customer FOREIGN KEY (customer_id) REFERENCES customer(id)
 );
 
