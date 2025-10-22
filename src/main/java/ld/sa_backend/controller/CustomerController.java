@@ -37,7 +37,7 @@ public class CustomerController {
     }
 
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @DeleteMapping(path = "{id}", produces = APPLICATION_JSON_VALUE)
+    @DeleteMapping(path = "{id}")
     public void deleteCustomer(@PathVariable int id) {
         this.customerService.deleteCustomer(id);
     }
