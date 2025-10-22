@@ -46,11 +46,21 @@ public class CustomerService {
     }
 
     public Customer getCustomerById(int id) {
-        Optional<Customer> optionalCustomer = this.customerRepository.findById(id);
-        // retourne le résultat de optionCustomer.get() si optionalCustomer est présent
-        return optionalCustomer.orElseThrow(
+        Optional<Customer> existingCustomer = this.customerRepository.findById(id);
+        // retourne le résultat de optionCustomer.get() si existingCustomer est présent
+        return existingCustomer.orElseThrow(
             () -> new EntityNotFoundException("No customer found with the ID : " + id + ".")
         );
+    }
+
+    public Customer findOrCreateCustomer(Customer customer) {
+        Customer foundCustomerInDatabase = this.customerRepository.findByEmail(customer.getEmail());
+
+        if (foundCustomerInDatabase == null) {
+            return this.customerRepository.save(customer);
+        }
+        
+        return foundCustomerInDatabase;
     }
 
     public Customer updateCustomer(int id, Customer updatedCustomer) {
