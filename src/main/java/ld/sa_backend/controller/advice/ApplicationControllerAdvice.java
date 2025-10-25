@@ -18,11 +18,13 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import static org.springframework.http.HttpStatus.BAD_GATEWAY;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.CONFLICT;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 import ld.sa_backend.dto.ErrorResponse;
+import ld.sa_backend.exception.ExternalApiException;
 
 
 @ControllerAdvice
@@ -44,5 +46,14 @@ public class ApplicationControllerAdvice {
     @ExceptionHandler({IllegalArgumentException.class})
     public @ResponseBody ErrorResponse handleException(IllegalArgumentException exception) {
         return new ErrorResponse("ARGUMENTS_INVALID", exception.getMessage());
+    }
+
+    @ResponseStatus(BAD_GATEWAY)
+    @ExceptionHandler({ExternalApiException.class})
+    public @ResponseBody ErrorResponse handleException(ExternalApiException exception) {
+        return new ErrorResponse(
+            "EXTERNAL_API_ERROR",
+            "Erreur lors de l’appel à un service externe : " + exception.getExternalErrorMessage()
+        );
     }
 }

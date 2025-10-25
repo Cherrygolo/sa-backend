@@ -2,7 +2,6 @@ package ld.sa_backend.service;
 
 import java.util.List;
 
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -10,7 +9,6 @@ import ld.sa_backend.entity.Customer;
 import ld.sa_backend.entity.Review;
 import ld.sa_backend.enums.ReviewType;
 import ld.sa_backend.external.nlp.FeelingAnalyser;
-import ld.sa_backend.repository.CustomerRepository;
 import ld.sa_backend.repository.ReviewRepository;
 
 @Service
