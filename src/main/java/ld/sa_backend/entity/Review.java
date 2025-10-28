@@ -26,7 +26,6 @@ public class Review {
     @Enumerated(EnumType.STRING)
     private ReviewType type;
 
-    @JsonBackReference
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "customer_id")
     private Customer customer;
