@@ -23,9 +23,6 @@ Ce projet illustre la mise en œuvre d’un backend Java moderne, modulable et p
 
 ## Fonctionnalités
 
-
-<summary>Voir les fonctionnalités</summary>
-
 - Soumission d’un avis client via une API REST
 - Analyse automatique du sentiment du texte
 - Persistance des avis en base de données (ex. H2, PostgreSQL, MySQL)
