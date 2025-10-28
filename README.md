@@ -13,12 +13,11 @@ Ce projet illustre la mise en œuvre d’un backend Java moderne, modulable et p
 - [Architecture](#architecture)
 - [Prérequis](#prérequis)
 - [Installation et exécution](#installation-et-exécution)
-- [Exemple d’appel API](#exemple-dappel-api)
+- [Fonctionnement](#fonctionnement)
+- [Endpoints de l'API](#endpoints-de-lapi)
 - [Technologies utilisées](#technologies-utilisées)
 - [Bonnes pratiques intégrées](#bonnes-pratiques-intégrées)
 - [Points d’évolution possibles](#points-dévolution-possibles)
-- [Auteur](#auteur)
-- [Licence](#licence)
 
 ---
 
@@ -42,7 +41,7 @@ Ce projet illustre la mise en œuvre d’un backend Java moderne, modulable et p
 
 
 L’application suit une architecture en couches claire et testable :
-
+```
 src/
  └── main/
      └── java/ld/sa_backend/
@@ -55,7 +54,7 @@ src/
          ├── repository      → interfaces Spring Data JPA
          └── service         → logique métier pour l’analyse des sentiments
  └── resources/    → fichiers de configuration
-
+```
 
 
 ## Prérequis
