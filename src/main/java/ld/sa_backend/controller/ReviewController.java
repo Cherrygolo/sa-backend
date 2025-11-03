@@ -1,4 +1,4 @@
-package ld.sa_backend.controller.advice;
+package ld.sa_backend.controller;
 
 import ld.sa_backend.entity.Review;
 import ld.sa_backend.enums.ReviewType;
