@@ -305,7 +305,7 @@ Réponse :
 
 - Mise en place d’un front-end pour la saisie et la visualisation des avis
 
-- Ajout de tests unitaires et d’intégration pour :
+- [EN COURS] Ajout de tests unitaires et d’intégration pour :
   - Vérifier la logique d’analyse des avis
   - Tester les endpoints REST
   - Couverture des cas limites (avis longs, texte vide, caractères spéciaux)
