@@ -33,11 +33,18 @@ public class Review {
     public Review() {
     }
 
-    public Review(int id, String text, ReviewType type, Customer customer) {
+    public Review(int id, Customer customer, String text, ReviewType type) {
         this.id = id;
+        this.customer = customer; 
         this.text = text;
         this.type = type;
+        
+    }
+
+    public Review(int id, Customer customer, String text) {
+        this.id = id;
         this.customer = customer; 
+        this.text = text;        
     }
 
     public int getId() {
