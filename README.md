@@ -1,9 +1,24 @@
 # Sentiment Analysis Backend (sa-backend)
 
-`sa-backend` est un service Spring Boot fournissant une API REST pour enregistrer et analyser les avis des clients.  
-L’application évalue automatiquement si un avis est positif, neutre ou négatif, en se basant sur le contenu textuel envoyé via l’API.
+`sa-backend` est une API REST développée avec **Spring Boot**, permettant d’enregistrer des avis clients et d’en analyser automatiquement le sentiment (positif, neutre ou négatif).
 
-Ce projet illustre la mise en œuvre d’un backend Java moderne, modulable et prêt à être intégré dans un écosystème de microservices ou une application front-end (Angular, React, etc.).
+Ce projet a pour objectif de démontrer la conception d’un **backend Java moderne**, structuré et extensible, prêt à être intégré dans une application front-end (Angular, React…) ou dans un écosystème de microservices.
+
+L’application s’appuie sur des **services d’infrastructure conteneurisés via Docker** (base de données, outil d’administration), tandis que l’API Spring Boot est exécutée localement.
+
+---
+
+## 🎯 Objectifs du projet
+
+Ce projet a été conçu pour illustrer :
+
+- La conception d’une API REST claire et cohérente avec Spring Boot
+- Une architecture backend en couches (Controller / Service / Repository)
+- L’intégration d’un **service externe** (API Hugging Face) avec gestion de fallback
+- La persistance des données via JPA
+- L’utilisation de **Docker pour fournir l’infrastructure locale**
+- Des bonnes pratiques applicables à un contexte professionnel
+- Un backend prêt à évoluer vers un environnement de production
 
 ---
 
@@ -13,129 +28,168 @@ Ce projet illustre la mise en œuvre d’un backend Java moderne, modulable et p
 - [Architecture](#architecture)
 - [Prérequis](#prérequis)
 - [Installation et exécution](#installation-et-exécution)
+- [Infrastructure locale avec Docker](#-infrastructure-locale-avec-docker)
 - [Fonctionnement](#fonctionnement)
+- [Documentation de l’API](#documentation-de-lapi)
 - [Endpoints de l'API](#endpoints-de-lapi)
 - [Technologies utilisées](#technologies-utilisées)
-- [Bonnes pratiques intégrées](#bonnes-pratiques-intégrées)
+- [Bonnes pratiques mises en œuvre](#-bonnes-pratiques-mises-en-œuvre)
 - [Points d’évolution possibles](#points-dévolution-possibles)
 
 ---
 
 ## Fonctionnalités
 
-- Soumission d’un avis client via une API REST
+- Soumission d’avis clients via une API REST
 - Analyse automatique du sentiment du texte
-- Persistance des avis en base de données (ex. H2, PostgreSQL, MySQL)
-- Consultation des avis enregistrés
-- API documentée avec Swagger / OpenAPI (si activé)
-- Tests unitaires et d’intégration avec JUnit et MockMvc
-
-</details>
+- Persistance des avis et des clients en base de données
+- Consultation et filtrage des avis par type de sentiment
+- Intégration d’un service d’analyse externe avec gestion des erreurs
+- Tests unitaires et d’intégration (JUnit, MockMvc)
 
 ---
 
 ## Architecture
 
+L’application suit une architecture en couches, favorisant la lisibilité, la testabilité et l’évolutivité :
 
-L’application suit une architecture en couches claire et testable :
 ```
 src/
  └── main/
      └── java/ld/sa_backend/
-         ├── controller      → endpoints REST pour Customer et Review
-         ├── dto             → objets de transfert (DTOs)
-         ├── entity          → classes JPA : Review.java, Customer.java
-         ├── enums           → ReviewType.java
-         ├── exception       → classes pour gérer les exceptions
-         ├── external        → intégrations externes (ex : API Hugging Face)
-         ├── repository      → interfaces Spring Data JPA
-         └── service         → logique métier pour l’analyse des sentiments
- └── resources/    → fichiers de configuration
+         ├── controller      → endpoints REST (Customer, Review)
+         ├── dto             → objets de transfert (DTO)
+         ├── entity          → entités JPA (Customer, Review)
+         ├── enums           → types métier (ReviewType)
+         ├── exception       → gestion centralisée des erreurs
+         ├── external        → intégration API Hugging Face
+         ├── repository      → accès aux données (Spring Data JPA)
+         └── service         → logique métier (analyse de sentiment)
+ └── resources/
+     ├── application.properties
+     └── docker-compose.yml
 ```
 
+---
 
 ## Prérequis
 
 - Java 17+
 - Maven 3.8+
-- (Optionnel) Docker pour le déploiement
-- IDE : IntelliJ IDEA, Eclipse ou VS Code avec extensions Java
+- Docker & Docker Compose
+- IDE recommandé : IntelliJ IDEA, Eclipse ou VS Code
 
+---
 
 ## Installation et exécution
 
-
-1. Cloner le dépôt
+### 1. Cloner le dépôt
 
 ```bash
-git clone https://github.com/chillo-tech/sa-backend.git
+git clone https://github.com/Cherrygolo/sa-backend.git
 cd sa-backend
 ```
 
-2. Lancer l’application
+### 2. Lancer l’infrastructure (base de données)
+
+```bash
+cd src/main/resources
+docker-compose up -d
+```
+
+### 3. Lancer l’API Spring Boot
+
 ```bash
 ./mvnw spring-boot:run
 ```
-L’API est disponible par défaut sur : http://localhost:8080/api/
 
+L’API est accessible à l’adresse :
+
+```
+http://localhost:8080/api/v1
+```
+
+---
+
+## 🐳 Infrastructure locale avec Docker
+
+Le projet utilise **Docker Compose** pour fournir les services d’infrastructure nécessaires au fonctionnement de l’API.
+
+Les services conteneurisés sont :
+
+- **MariaDB** : base de données relationnelle
+- **Adminer** : interface web d’administration de la base
+
+L’API Spring Boot est exécutée localement et se connecte à la base MariaDB exposée par Docker.
+
+### Services exposés
+
+- MariaDB : `localhost:3307`
+- Adminer : http://localhost:8081
+
+### Connexion à la base via Adminer
+
+- Système : MySQL / MariaDB  
+- Serveur : `db`  
+- Utilisateur : `root`  
+- Mot de passe : `root`
+
+---
 
 ## Fonctionnement
 
-L’API peut fonctionner de deux manières, selon que vous ayez renseigné ou non un token d’accès à l’API Hugging Face :
+L’API peut fonctionner selon deux modes, en fonction de la présence d’un token d’accès à l’API Hugging Face.
 
-### Avec un token Hugging Face
+### 🔹 Avec un token Hugging Face
 
-Si un token valide est fourni, l’API utilise le modèle pré-entraîné nlptown/bert-base-multilingual-uncased-sentiment
- pour analyser le texte.
+Lorsque le token est fourni, l’application utilise le modèle :
+`nlptown/bert-base-multilingual-uncased-sentiment`
 
-Ce dernier peut être obtenu gratuitement après création d'un compte sur Hugging Face (cf https://huggingface.co/docs/hub/security-tokens)
+Le token doit être renseigné dans un fichier `config.properties` :
 
-Étapes de l'analyse :
-
-L’API lit le token depuis le fichier config.properties :
-
+```
 HUGGINGFACE_TOKEN=VOTRE_TOKEN_ICI
+```
 
-Le texte à analyser est envoyé au modèle via une requête HTTP POST.
+Étapes de l’analyse :
 
-Le modèle renvoie un score de sentiment sous forme d’étoiles (de 1 à 5).
-
-Le score est converti en ReviewType :
+1. Le texte est envoyé à l’API Hugging Face via une requête HTTP POST
+2. Le modèle renvoie un score de 1 à 5 étoiles
+3. Le score est converti en type métier :
 
 | Étoiles | Sentiment |
-| ------- | --------- |
-| 1 ou 2  | NEGATIVE  |
-| 3       | NEUTRAL   |
-| 4 ou 5  | POSITIVE  |
+|-------|-----------|
+| 1 – 2 | NEGATIVE  |
+| 3     | NEUTRAL   |
+| 4 – 5 | POSITIVE  |
 
-L’API retourne le sentiment correspondant.
+En cas d’erreur ou de réponse invalide, un **fallback automatique** renvoie un sentiment `NEUTRAL`.
 
-En cas d’erreur HTTP ou si le modèle renvoie un résultat vide/malformé, l’API retourne NEUTRAL.
+---
 
-#### Exemple de fichier config.properties
-```
-# Fichier de configuration pour l'API Hugging Face
-HUGGINGFACE_TOKEN=hf_XXXXXXXXXXXXXXXXXXXX
-```
+### 🔹 Sans token Hugging Face
 
-### Sans token Hugging Face
+Si aucun token n’est fourni, une analyse simplifiée est appliquée :
 
-Si aucun token n’est renseigné ou si le fichier config.properties est absent, l’API utilise une analyse basique basée sur des mots-clés négatifs (ne, n', pas).
+- Recherche de mots-clés négatifs (`ne`, `n'`, `pas`)
+- Présence détectée → `NEGATIVE`
+- Sinon → `POSITIVE`
 
-Si le texte contient ces mots, le sentiment renvoyé sera NEGATIVE.
+⚠️ Cette méthode est volontairement basique et sert uniquement de solution de secours.
 
-Sinon, le sentiment sera POSITIVE.
+---
 
-⚠️ Cette méthode est simpliste et ne reflète pas la nuance complète du texte.
+## Documentation de l’API
 
+La documentation de l’API est fournie directement dans ce README à travers des **exemples concrets de requêtes et de réponses JSON**.
 
+L’intégration de Swagger / OpenAPI est identifiée comme une **évolution naturelle**, afin d’automatiser la documentation et faciliter l’intégration avec des clients externes.
 
+---
 
 ## Endpoints de l'API
 
 ### Clients
-
-#### Créer un client
 
 **POST /api/v1/customer**
 
@@ -146,40 +200,11 @@ Sinon, le sentiment sera POSITIVE.
 }
 ```
 
-Réponse :
-
-```json
-{
-  "id": 1,
-  "email": "alice@example.com",
-  "phone": "0601020304"
-}
-```
-
-#### Récupérer tous les clients
-
 **GET /api/v1/customer**
 
-Réponse : 
+---
 
-```json
-[
-  {
-    "id": 1,
-    "email": "alice@example.com",
-    "phone": "0601020304"
-  },
-  {
-    "id": 2,
-    "email": "bob@example.com",
-    "phone": "0605060708"
-  }
-]
-```
-
-### Avis (Reviews)
-
-#### Créer un avis
+### Avis
 
 **POST /api/v1/review**
 
@@ -190,127 +215,58 @@ Réponse :
 }
 ```
 
-Réponse :
-
-```json
-{
-  "id": 42,
-  "text": "Service rapide et équipe très sympathique !",
-  "type": "POSITIVE",
-  "customer": {
-    "id": 1,
-    "email": "alice@example.com",
-    "phone": "0601020304"
-  }
-}
-```
-
-#### Récupérer tous les avis
-
 **GET /api/v1/review**
 
-Réponse :
-
-```json
-[
-  {
-    "id": 42,
-    "text": "Service rapide et équipe très sympathique !",
-    "type": "POSITIVE",
-    "customer": {
-      "id": 1,
-      "email": "alice@example.com",
-      "phone": "0601020304"
-    }
-  },
-  {
-    "id": 43,
-    "text": "Le produit est arrivé en retard.",
-    "type": "NEGATIVE",
-    "customer": {
-      "id": 2,
-      "email": "bob@example.com",
-      "phone": "0605060708"
-    }
-  }
-]
-```
-
-### Récupérer les avis filtrés par type
-
 **GET /api/v1/review?type=POSITIVE**
 
-type : le type d’avis (POSITIVE, NEGATIVE, NEUTRAL)
-
-Exemple : 
-
-**GET /api/v1/review?type=POSITIVE**
-
-Réponse : 
-
-```json
-[
-  {
-    "id": 42,
-    "text": "Service rapide et équipe très sympathique !",
-    "type": "POSITIVE",
-    "customer": {
-      "id": 1,
-      "email": "alice@example.com",
-      "phone": "0601020304"
-    }
-  },
-  {
-    "id": 44,
-    "text": "Excellent produit, je recommande !",
-    "type": "POSITIVE",
-    "customer": {
-      "id": 3,
-      "email": "charlie@example.com",
-      "phone": "0608091011"
-    }
-  }
-]
-```
+---
 
 ## Technologies utilisées
 
+- Java 17
 - Spring Boot 3
-
 - Spring Web / REST
-
 - Spring Data JPA / Hibernate
-
 - Maven
+- JUnit / MockMvc
+- Docker
+- Docker Compose
+- MariaDB
+- Adminer
 
-(Optionnel) Swagger / OpenAPI
+---
 
+## Bonnes pratiques mises en œuvre
 
-## Bonnes pratiques intégrées
+- Architecture en couches (Controller / Service / Repository)
+- Séparation Entity / DTO
+- Validation des entrées utilisateur
+- Gestion centralisée des exceptions
+- Intégration externe isolée et testable
+- Fallback automatique en cas d’indisponibilité d’un service externe
+- Utilisation de Docker pour l’infrastructure locale
+- Code modulaire et extensible
 
-- Architecture MVC claire et modulaire
-
-- Validation des entrées (@Valid, @NotBlank, etc.)
-
-- Gestion centralisée des exceptions (@ControllerAdvice)
-
-- Injection de dépendances via Spring IoC
-
+---
 
 ## Points d’évolution possibles
 
-- Authentification JWT pour restreindre l’accès à certaines routes
+Les évolutions suivantes sont volontairement identifiées afin de démontrer la capacité du projet à évoluer vers un contexte de production :
 
-- Déploiement via Docker Compose avec base PostgreSQL
+- Conteneurisation complète de l’API Spring Boot
+- Ajout de Swagger / OpenAPI
+- Sécurisation de l’API (JWT / Spring Security)
+- Centralisation de la configuration via variables d’environnement
+- Séparation des environnements (dev / prod)
+- Ajout d’un front-end (Angular ou React)
+- Renforcement de la couverture de tests
+- Mise en place de métriques et de monitoring
 
-- Mise en place d’un front-end pour la saisie et la visualisation des avis
+---
 
-- [EN COURS] Ajout de tests unitaires et d’intégration pour :
-  - Vérifier la logique d’analyse des avis
-  - Tester les endpoints REST
-  - Couverture des cas limites (avis longs, texte vide, caractères spéciaux)
-  - Tests d’intégration avec différentes bases de données
-  - Tests de sécurité sur les endpoints
+## Conclusion
 
+Ce projet met l’accent sur la **qualité du code**, la **clarté de l’architecture** et des **choix techniques réfléchis**, notamment l’utilisation de Docker pour l’infrastructure locale.
 
+Il constitue une base saine pour une API REST Java prête à être intégrée dans un environnement professionnel.
 
