@@ -5,10 +5,12 @@ import ld.sa_backend.entity.Review;
 import ld.sa_backend.enums.ReviewType;
 import ld.sa_backend.external.nlp.FeelingAnalyser;
 import ld.sa_backend.repository.ReviewRepository;
+import ld.sa_backend.testutils.CustomerTestBuilder;
+import ld.sa_backend.testutils.ReviewTestBuilder;
+import ld.sa_backend.testutils.TestDataFactory;
 
 import jakarta.persistence.EntityNotFoundException;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -17,8 +19,6 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -41,30 +41,13 @@ class ReviewServiceTest {
     @InjectMocks
     private ReviewService reviewService;
 
-    private Customer testCustomer;
-    private Review testReview;
-
-    @BeforeEach
-    void setUp() {
-        testCustomer = new Customer("john@example.com", 1, "0600000000");
-        testReview = generateTestReview(1, testCustomer, "Très bonne expérience!", null);
-    }
-
-    static Review generateTestReview(int id, Customer customer, String text, ReviewType type ) {
-        Review review = new Review(1, customer, text);
-        if (type != null) {
-            review.setType(type);
-        }
-        return review;
-    }
-
-
-
     //region ------------ TESTS FOR createReview METHOD ------------
 
     @Test
     void createReviewShouldThrowExceptionIfTextIsNull() {
-        testReview.setText(null);
+        Review testReview = ReviewTestBuilder.aReview()
+            .withText(null)
+            .build();
 
         IllegalArgumentException ex = assertThrows(
             IllegalArgumentException.class,
@@ -77,7 +60,9 @@ class ReviewServiceTest {
 
     @Test
     void createReviewShouldThrowExceptionIfTextIsBlank() {
-        testReview.setText("   ");
+        Review testReview = ReviewTestBuilder.aReview()
+            .withText("   ")
+            .build();
 
         IllegalArgumentException ex = assertThrows(
             IllegalArgumentException.class,
@@ -90,11 +75,21 @@ class ReviewServiceTest {
 
     @Test
     void createReviewShouldCreateReviewSuccessfully() {
-        // Arrange
-        Customer savedCustomer = new Customer("john@example.com", 1, "0600000000");
+        Customer testCustomer = TestDataFactory.createDefaultCustomer();
+        Review testReview = ReviewTestBuilder.aReview()
+            .withId(1)
+            .withCustomer(testCustomer)
+            .withText("Très bonne expérience!")
+            .build();
+
+        Customer savedCustomer = CustomerTestBuilder.aCustomer()
+            .withEmail("john@example.com")
+            .withId(1)
+            .withPhone("0600000000")
+            .build();
+
         when(customerService.findOrCreateCustomer(any(Customer.class))).thenReturn(savedCustomer);
 
-        // Mock statique pour FeelingAnalyser
         try (var mocked = Mockito.mockStatic(FeelingAnalyser.class)) {
             mocked.when(() -> FeelingAnalyser.analyzeFeelingType(testReview.getText()))
                   .thenReturn(ReviewType.POSITIVE);
@@ -105,10 +100,8 @@ class ReviewServiceTest {
                 return saved;
             });
 
-            // Act
             Review createdReview = reviewService.createReview(testReview);
 
-            // Assert
             assertNotNull(createdReview);
             assertEquals(99, createdReview.getId());
             assertEquals(savedCustomer, createdReview.getCustomer());
@@ -125,26 +118,51 @@ class ReviewServiceTest {
 
     @Test
     void findReviewsShouldReturnAllIfTypeIsNull() {
-        testReview.setType(ReviewType.POSITIVE);
-        Review negativeReview = generateTestReview(2, testCustomer, "Je suis assez déçu...", ReviewType.NEGATIVE );
-        List<Review> reviews =  new ArrayList<>(Arrays.asList(testReview, negativeReview));
-        when(reviewRepository.findAll()).thenReturn(reviews);
+        Customer testCustomer = TestDataFactory.createDefaultCustomer();
+        
+        Review positiveReview = ReviewTestBuilder.aReview()
+            .withId(1)
+            .withCustomer(testCustomer)
+            .withText("Très bonne expérience!")
+            .withType(ReviewType.POSITIVE)
+            .build();
+
+        Review negativeReview = ReviewTestBuilder.aReview()
+            .withId(2)
+            .withCustomer(testCustomer)
+            .withText("Je suis assez déçu...")
+            .withType(ReviewType.NEGATIVE)
+            .build();
+
+        List<Review> allReviews = List.of(positiveReview, negativeReview);
+        when(reviewRepository.findAll()).thenReturn(allReviews);
 
         List<Review> result = reviewService.findReviews(null);
 
-        assertEquals(1, result.size());
+        assertEquals(2, result.size());
         verify(reviewRepository).findAll();
         verify(reviewRepository, never()).findByType(any());
     }
 
     @Test
     void findReviewsShouldReturnFilteredByType() {
-        List<Review> reviews = Arrays.asList(testReview);
-        when(reviewRepository.findByType(ReviewType.NEGATIVE)).thenReturn(reviews);
+        Customer testCustomer = TestDataFactory.createDefaultCustomer();
+        
+        Review negativeReview = ReviewTestBuilder.aReview()
+            .withId(1)
+            .withCustomer(testCustomer)
+            .withText("Je suis assez déçu...")
+            .withType(ReviewType.NEGATIVE)
+            .build();
+
+        List<Review> negativeReviews = List.of(negativeReview);
+        when(reviewRepository.findByType(ReviewType.NEGATIVE)).thenReturn(negativeReviews);
 
         List<Review> result = reviewService.findReviews(ReviewType.NEGATIVE);
 
         assertEquals(1, result.size());
+        assertEquals(ReviewType.NEGATIVE, result.get(0).getType());
+        assertEquals("Je suis assez déçu...", result.get(0).getText());
         verify(reviewRepository).findByType(ReviewType.NEGATIVE);
         verify(reviewRepository, never()).findAll();
     }
@@ -180,5 +198,4 @@ class ReviewServiceTest {
     }
 
     //endregion
-
 }
