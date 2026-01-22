@@ -1,5 +1,25 @@
 package ld.sa_backend.service;
 
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import jakarta.persistence.EntityNotFoundException;
 import ld.sa_backend.entity.Customer;
 import ld.sa_backend.entity.Review;
 import ld.sa_backend.enums.ReviewType;
@@ -8,23 +28,6 @@ import ld.sa_backend.repository.ReviewRepository;
 import ld.sa_backend.testutils.CustomerTestBuilder;
 import ld.sa_backend.testutils.ReviewTestBuilder;
 import ld.sa_backend.testutils.TestDataFactory;
-
-import jakarta.persistence.EntityNotFoundException;
-
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.Mockito.*;
 
 /**
  * Classe de test unitaire pour ReviewService.
@@ -41,160 +44,186 @@ class ReviewServiceTest {
     @InjectMocks
     private ReviewService reviewService;
 
-    //region ------------ TESTS FOR createReview METHOD ------------
+
+    //region ------------ CREATE REVIEW ------------
 
     @Test
-    void createReviewShouldThrowExceptionIfTextIsNull() {
-        Review testReview = ReviewTestBuilder.aReview()
+    void createReview_shouldThrowException_whenTextIsNull() {
+        Review reviewToCreate = ReviewTestBuilder.aReview()
             .withText(null)
             .build();
 
-        IllegalArgumentException ex = assertThrows(
+        IllegalArgumentException exception = assertThrows(
             IllegalArgumentException.class,
-            () -> reviewService.createReview(testReview)
+            () -> reviewService.createReview(reviewToCreate)
         );
 
-        assertEquals("Review text cannot be null or empty.", ex.getMessage());
+        assertEquals("Review text cannot be null or empty.", exception.getMessage());
         verifyNoInteractions(customerService, reviewRepository);
     }
 
     @Test
-    void createReviewShouldThrowExceptionIfTextIsBlank() {
-        Review testReview = ReviewTestBuilder.aReview()
+    void createReview_shouldThrowException_whenTextIsBlank() {
+        Review reviewToCreate = ReviewTestBuilder.aReview()
             .withText("   ")
             .build();
 
-        IllegalArgumentException ex = assertThrows(
+        IllegalArgumentException exception = assertThrows(
             IllegalArgumentException.class,
-            () -> reviewService.createReview(testReview)
+            () -> reviewService.createReview(reviewToCreate)
         );
 
-        assertEquals("Review text cannot be null or empty.", ex.getMessage());
+        assertEquals("Review text cannot be null or empty.", exception.getMessage());
         verifyNoInteractions(customerService, reviewRepository);
     }
 
     @Test
-    void createReviewShouldCreateReviewSuccessfully() {
-        Customer testCustomer = TestDataFactory.createDefaultCustomer();
-        Review testReview = ReviewTestBuilder.aReview()
-            .withId(1)
-            .withCustomer(testCustomer)
-            .withText("Très bonne expérience!")
+    void createReview_shouldCreateReviewSuccessfully_whenDataIsValid() {
+        Customer customerFromRequest = TestDataFactory.createDefaultCustomer();
+
+        Review reviewToCreate = ReviewTestBuilder.aReview()
+            .withCustomer(customerFromRequest)
+            .withText("Très bonne expérience !")
             .build();
 
         Customer savedCustomer = CustomerTestBuilder.aCustomer()
-            .withEmail("john@example.com")
             .withId(1)
-            .withPhone("0600000000")
+            .withEmail(customerFromRequest.getEmail())
             .build();
 
-        when(customerService.findOrCreateCustomer(any(Customer.class))).thenReturn(savedCustomer);
+        when(customerService.findOrCreateCustomer(customerFromRequest))
+            .thenReturn(savedCustomer);
 
-        try (var mocked = Mockito.mockStatic(FeelingAnalyser.class)) {
-            mocked.when(() -> FeelingAnalyser.analyzeFeelingType(testReview.getText()))
-                  .thenReturn(ReviewType.POSITIVE);
+        try (var mockedFeelingAnalyser = Mockito.mockStatic(FeelingAnalyser.class)) {
+            mockedFeelingAnalyser
+                .when(() -> FeelingAnalyser.analyzeFeelingType(reviewToCreate.getText()))
+                .thenReturn(ReviewType.POSITIVE);
 
-            when(reviewRepository.save(any(Review.class))).thenAnswer(invocation -> {
-                Review saved = invocation.getArgument(0);
-                saved.setId(99);
-                return saved;
-            });
+            when(reviewRepository.save(any(Review.class)))
+                .thenAnswer(invocation -> {
+                    Review savedReview = invocation.getArgument(0);
+                    savedReview.setId(99);
+                    return savedReview;
+                });
 
-            Review createdReview = reviewService.createReview(testReview);
+            Review createdReview = reviewService.createReview(reviewToCreate);
 
             assertNotNull(createdReview);
             assertEquals(99, createdReview.getId());
             assertEquals(savedCustomer, createdReview.getCustomer());
             assertEquals(ReviewType.POSITIVE, createdReview.getType());
 
-            verify(customerService).findOrCreateCustomer(testCustomer);
-            verify(reviewRepository).save(testReview);
+            verify(customerService).findOrCreateCustomer(customerFromRequest);
+            verify(reviewRepository).save(reviewToCreate);
         }
     }
 
     //endregion
 
-    //region ------------ TESTS FOR findReviews METHOD ------------
+    //region ------------ FIND REVIEWS ------------
 
     @Test
-    void findReviewsShouldReturnAllIfTypeIsNull() {
-        Customer testCustomer = TestDataFactory.createDefaultCustomer();
-        
+    void findReviews_shouldReturnAllReviews_whenTypeIsNull() {
+        Customer customer = TestDataFactory.createDefaultCustomer();
+
         Review positiveReview = ReviewTestBuilder.aReview()
             .withId(1)
-            .withCustomer(testCustomer)
-            .withText("Très bonne expérience!")
+            .withCustomer(customer)
+            .withText("Excellent service")
             .withType(ReviewType.POSITIVE)
             .build();
 
         Review negativeReview = ReviewTestBuilder.aReview()
             .withId(2)
-            .withCustomer(testCustomer)
-            .withText("Je suis assez déçu...")
+            .withCustomer(customer)
+            .withText("Très déçu")
             .withType(ReviewType.NEGATIVE)
             .build();
 
-        List<Review> allReviews = List.of(positiveReview, negativeReview);
-        when(reviewRepository.findAll()).thenReturn(allReviews);
+        List<Review> existingReviews = List.of(positiveReview, negativeReview);
 
-        List<Review> result = reviewService.findReviews(null);
+        when(reviewRepository.findAll()).thenReturn(existingReviews);
 
-        assertEquals(2, result.size());
+        List<Review> foundReviews = reviewService.findReviews(null);
+
+        assertEquals(2, foundReviews.size());
         verify(reviewRepository).findAll();
         verify(reviewRepository, never()).findByType(any());
     }
 
     @Test
-    void findReviewsShouldReturnFilteredByType() {
-        Customer testCustomer = TestDataFactory.createDefaultCustomer();
-        
-        Review negativeReview = ReviewTestBuilder.aReview()
+    void findReviews_shouldReturnFilteredReviews_whenTypeIsProvided() {
+        Customer customer = TestDataFactory.createDefaultCustomer();
+
+        Review negativeReview1 = ReviewTestBuilder.aReview()
             .withId(1)
-            .withCustomer(testCustomer)
-            .withText("Je suis assez déçu...")
+            .withCustomer(customer)
+            .withText("Très déçu")
             .withType(ReviewType.NEGATIVE)
             .build();
 
-        List<Review> negativeReviews = List.of(negativeReview);
-        when(reviewRepository.findByType(ReviewType.NEGATIVE)).thenReturn(negativeReviews);
+        Review negativeReview2 = ReviewTestBuilder.aReview()
+            .withId(2)
+            .withCustomer(customer)
+            .withText("Service médiocre")
+            .withType(ReviewType.NEGATIVE)
+            .build();
 
-        List<Review> result = reviewService.findReviews(ReviewType.NEGATIVE);
+        Review positiveReview = ReviewTestBuilder.aReview()
+            .withId(3)
+            .withCustomer(customer)
+            .withText("Excellent")
+            .withType(ReviewType.POSITIVE)
+            .build();
 
-        assertEquals(1, result.size());
-        assertEquals(ReviewType.NEGATIVE, result.get(0).getType());
-        assertEquals("Je suis assez déçu...", result.get(0).getText());
+        when(reviewRepository.findByType(ReviewType.NEGATIVE))
+            .thenReturn(List.of(negativeReview1, negativeReview2));
+
+        List<Review> foundReviews = reviewService.findReviews(ReviewType.NEGATIVE);
+
+        assertEquals(2, foundReviews.size());
+        assertTrue(foundReviews.stream().allMatch(
+            review -> review.getType() == ReviewType.NEGATIVE
+        ));
+
         verify(reviewRepository).findByType(ReviewType.NEGATIVE);
         verify(reviewRepository, never()).findAll();
     }
 
     //endregion
 
-    //region ------------ TESTS FOR deleteReview METHOD ------------
+    //region ------------ DELETE REVIEW ------------
 
     @Test
-    void deleteReviewShouldThrowExceptionIfReviewDoesNotExist() {
-        int nonExistentId = 123;
-        when(reviewRepository.existsById(nonExistentId)).thenReturn(false);
+    void deleteReview_shouldThrowException_whenReviewDoesNotExist() {
+        int nonExistentReviewId = 123;
 
-        EntityNotFoundException ex = assertThrows(
+        when(reviewRepository.existsById(nonExistentReviewId)).thenReturn(false);
+
+        EntityNotFoundException exception = assertThrows(
             EntityNotFoundException.class,
-            () -> reviewService.deleteReview(nonExistentId)
+            () -> reviewService.deleteReview(nonExistentReviewId)
         );
 
-        assertEquals("No review found with the ID : 123.", ex.getMessage());
-        verify(reviewRepository).existsById(nonExistentId);
+        assertEquals(
+            "No review found with the ID : " + nonExistentReviewId + ".",
+            exception.getMessage()
+        );
+
+        verify(reviewRepository).existsById(nonExistentReviewId);
         verify(reviewRepository, never()).deleteById(anyInt());
     }
 
     @Test
-    void deleteReviewShouldDeleteSuccessfullyIfExists() {
-        int existingId = 1;
-        when(reviewRepository.existsById(existingId)).thenReturn(true);
+    void deleteReview_shouldDeleteReview_whenReviewExists() {
+        int existingReviewId = 1;
 
-        reviewService.deleteReview(existingId);
+        when(reviewRepository.existsById(existingReviewId)).thenReturn(true);
 
-        verify(reviewRepository).existsById(existingId);
-        verify(reviewRepository).deleteById(existingId);
+        reviewService.deleteReview(existingReviewId);
+
+        verify(reviewRepository).existsById(existingReviewId);
+        verify(reviewRepository).deleteById(existingReviewId);
     }
 
     //endregion

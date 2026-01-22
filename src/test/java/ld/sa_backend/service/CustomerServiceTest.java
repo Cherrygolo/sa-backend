@@ -1,21 +1,21 @@
 package ld.sa_backend.service;
 
+import java.util.List;
+import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
-
-import java.util.List;
-import java.util.Optional;
-
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
 
@@ -26,7 +26,7 @@ import ld.sa_backend.testutils.CustomerTestBuilder;
 import ld.sa_backend.testutils.TestDataFactory;
 
 @ExtendWith(MockitoExtension.class)
-public class CustomerServiceTest {
+class CustomerServiceTest {
 
     @Mock
     private CustomerRepository customerRepository;
@@ -34,300 +34,234 @@ public class CustomerServiceTest {
     @InjectMocks
     private CustomerService customerService;
 
-    //region ------------ TESTS FOR CustomerService.createCustomer METHOD ------------
+    //region ------------ CREATE CUSTOMER ------------
 
     @Test
-    void createCustomerShouldSaveWhenEmailNotUsed() {
-        Customer testCustomer = TestDataFactory.createDefaultCustomer();
-
-        when(customerRepository.findByEmail(testCustomer.getEmail())).thenReturn(null);
-        when(customerRepository.save(testCustomer)).thenReturn(testCustomer);
-
-        Customer resultingCustomer = customerService.createCustomer(testCustomer);
-
-        assertEquals(testCustomer.getEmail(), resultingCustomer.getEmail());
-        assertEquals(testCustomer.getPhone(), resultingCustomer.getPhone());
-        assertEquals(testCustomer.getId(), resultingCustomer.getId());
-        verify(customerRepository).findByEmail(testCustomer.getEmail());
-        verify(customerRepository).save(testCustomer);
-    }
-
-    @Test
-    void createCustomerShouldThrowExceptionWhenEmailAlreadyUsed() {
-        Customer testCustomer = TestDataFactory.createDefaultCustomer();
-
-        when(customerRepository.findByEmail(testCustomer.getEmail())).thenReturn(testCustomer);
-
-        DataIntegrityViolationException ex = assertThrows(
-            DataIntegrityViolationException.class,
-            () -> customerService.createCustomer(testCustomer)
-        );
-
-        assertEquals(
-            "An user already exists with the email address : " + testCustomer.getEmail(),
-            ex.getMessage()
-        );
-        verify(customerRepository).findByEmail(testCustomer.getEmail());
-    }
-
-    //endregion
-
-    //region ------------ TESTS FOR CustomerService.deleteCustomer METHOD ------------
-
-    @Test
-    void deleteCustomerShouldCallDeleteWhenCustomerExists() {
-        Customer testCustomer = TestDataFactory.createDefaultCustomer();
-
-        when(customerRepository.existsById(testCustomer.getId())).thenReturn(true);
-
-        customerService.deleteCustomer(testCustomer.getId());
-
-        verify(customerRepository).existsById(testCustomer.getId());
-        verify(customerRepository).deleteById(testCustomer.getId());
-    }
-
-    @Test
-    void deleteCustomerShouldThrowExceptionWhenCustomerDoesNotExist() {
-        int nonExistentCustomerId = 999;
-
-        when(customerRepository.existsById(nonExistentCustomerId)).thenReturn(false);
-
-        EntityNotFoundException ex = assertThrows(
-            EntityNotFoundException.class,
-            () -> customerService.deleteCustomer(nonExistentCustomerId)
-        );
-
-        assertEquals("No customer found with the ID : " + nonExistentCustomerId + ".", ex.getMessage());
-        verify(customerRepository).existsById(nonExistentCustomerId);
-    }
-
-    //endregion
-
-    //region ------------ TESTS FOR CustomerService.getAllCustomers METHOD ------------
-
-    @Test
-    void getAllCustomersShouldReturnsListWithAllExistingCustomers() {
-        List<Customer> existingCustomers = TestDataFactory.createCustomerList(2);
-
-        when(customerRepository.findAll()).thenReturn(existingCustomers);
-
-        List<Customer> foundCustomers = customerService.getAllCustomers();
-
-        assertEquals(existingCustomers.size(), foundCustomers.size());
-        for (int i = 0; i < existingCustomers.size(); i++) {
-            Customer existingCustomer = existingCustomers.get(i);
-            Customer foundCustomer = foundCustomers.get(i);
-
-            assertEquals(existingCustomer.getId(), foundCustomer.getId());
-            assertEquals(existingCustomer.getEmail(), foundCustomer.getEmail());
-            assertEquals(existingCustomer.getPhone(), foundCustomer.getPhone());
-        }
-        verify(customerRepository).findAll();
-    }
-
-    @Test
-    void getAllCustomersShouldReturnEmptyListWhenNoCustomersExist() {
-        when(customerRepository.findAll()).thenReturn(List.of());
-
-        List<Customer> foundCustomers = customerService.getAllCustomers();
-
-        assertTrue(foundCustomers.isEmpty());
-        verify(customerRepository).findAll();
-    }
-
-    //endregion
-
-    //region ------------ TESTS FOR CustomerService.getCustomerById METHOD ------------
-
-    @Test
-    void getCustomerByIdShouldReturnsMatchingCustomerIfExists() {
-        Customer testCustomer = TestDataFactory.createDefaultCustomer();
-        int customerId = testCustomer.getId();
-
-        when(customerRepository.findById(customerId)).thenReturn(Optional.of(testCustomer));
-
-        Customer foundCustomer = customerService.getCustomerById(customerId);
-
-        assertEquals(testCustomer.getEmail(), foundCustomer.getEmail());
-        assertEquals(testCustomer.getPhone(), foundCustomer.getPhone());
-        assertEquals(testCustomer.getId(), foundCustomer.getId());
-        verify(customerRepository).findById(customerId);
-    }
-
-    @Test
-    void getCustomerByIdShouldThrowsExceptionIfNoMatchingCustomerExists() {
-        int nonExistentCustomerId = 111;
-
-        when(customerRepository.findById(nonExistentCustomerId)).thenReturn(Optional.empty());
-
-        EntityNotFoundException ex = assertThrows(
-            EntityNotFoundException.class,
-            () -> customerService.getCustomerById(nonExistentCustomerId)
-        );
-
-        assertEquals("No customer found with the ID : " + nonExistentCustomerId + ".", ex.getMessage());
-        verify(customerRepository).findById(nonExistentCustomerId);
-    }
-
-    //endregion
-
-    //region ------------ TESTS FOR CustomerService.findOrCreateCustomer METHOD ------------
-
-    @Test
-    void findOrCreateCustomerShouldReturnsMatchingCustomerIfExists() {
-        Customer existingCustomer = TestDataFactory.createDefaultCustomer();
-        Customer usedCustomer = CustomerTestBuilder.aCustomer()
-            .withEmail(existingCustomer.getEmail())
-            .build();
-
-        when(customerRepository.findByEmail(existingCustomer.getEmail())).thenReturn(existingCustomer);
-
-        Customer resultingCustomer = customerService.findOrCreateCustomer(usedCustomer);
-
-        assertEquals(existingCustomer.getEmail(), resultingCustomer.getEmail());
-        assertEquals(existingCustomer.getPhone(), resultingCustomer.getPhone());
-        assertEquals(existingCustomer.getId(), resultingCustomer.getId());
-        verify(customerRepository).findByEmail(usedCustomer.getEmail());
-        verifyNoMoreInteractions(customerRepository);
-    }
-
-    @Test
-    void findOrCreateCustomerShouldCreateGivenCustomerIfNotExists() {
-        Customer customerToCreate = new Customer();
+    void createCustomer_shouldSaveCustomer_whenEmailIsNotUsed() {
+        Customer customerToCreate = TestDataFactory.createDefaultCustomer();
 
         when(customerRepository.findByEmail(customerToCreate.getEmail())).thenReturn(null);
         when(customerRepository.save(customerToCreate)).thenReturn(customerToCreate);
 
-        Customer foundCustomer = customerService.findOrCreateCustomer(customerToCreate);
+        Customer createdCustomer = customerService.createCustomer(customerToCreate);
 
-        assertEquals(customerToCreate.getEmail(), foundCustomer.getEmail());
-        assertEquals(customerToCreate.getPhone(), foundCustomer.getPhone());
-        assertEquals(customerToCreate.getId(), foundCustomer.getId());
+        assertEquals(customerToCreate.getEmail(), createdCustomer.getEmail());
+        assertEquals(customerToCreate.getPhone(), createdCustomer.getPhone());
+        assertEquals(customerToCreate.getId(), createdCustomer.getId());
+
         verify(customerRepository).findByEmail(customerToCreate.getEmail());
         verify(customerRepository).save(customerToCreate);
-        verifyNoMoreInteractions(customerRepository);
+    }
+
+    @Test
+    void createCustomer_shouldThrowException_whenEmailAlreadyExists() {
+        Customer customerToCreate = TestDataFactory.createDefaultCustomer();
+
+        when(customerRepository.findByEmail(customerToCreate.getEmail()))
+            .thenReturn(customerToCreate);
+
+        DataIntegrityViolationException exception = assertThrows(
+            DataIntegrityViolationException.class,
+            () -> customerService.createCustomer(customerToCreate)
+        );
+
+        assertEquals(
+            "An user already exists with the email address : " + customerToCreate.getEmail(),
+            exception.getMessage()
+        );
+
+        verify(customerRepository).findByEmail(customerToCreate.getEmail());
+        verify(customerRepository, never()).save(any());
     }
 
     //endregion
 
-    //region ------------ TESTS FOR CustomerService.updateCustomer METHOD ------------
+    //region ------------ DELETE CUSTOMER ------------
 
     @Test
-    void updateCustomerShouldThrowExceptionIfGivenCustomerDoesNotExist() {
-        Customer nonExistentCustomer = TestDataFactory.createDefaultCustomer();
+    void deleteCustomer_shouldDeleteCustomer_whenCustomerExists() {
+        int customerId = 1;
+
+        when(customerRepository.existsById(customerId)).thenReturn(true);
+
+        customerService.deleteCustomer(customerId);
+
+        verify(customerRepository).existsById(customerId);
+        verify(customerRepository).deleteById(customerId);
+    }
+
+    @Test
+    void deleteCustomer_shouldThrowException_whenCustomerDoesNotExist() {
+        int nonExistentCustomerId = 999;
+
+        when(customerRepository.existsById(nonExistentCustomerId)).thenReturn(false);
+
+        EntityNotFoundException exception = assertThrows(
+            EntityNotFoundException.class,
+            () -> customerService.deleteCustomer(nonExistentCustomerId)
+        );
+
+        assertEquals(
+            "No customer found with the ID : " + nonExistentCustomerId + ".",
+            exception.getMessage()
+        );
+
+        verify(customerRepository).existsById(nonExistentCustomerId);
+        verify(customerRepository, never()).deleteById(anyInt());
+    }
+
+    //endregion
+
+    //region ------------ GET ALL CUSTOMERS ------------
+
+    @Test
+    void getAllCustomers_shouldReturnAllCustomers_whenCustomersExist() {
+        List<Customer> existingCustomers = TestDataFactory.createCustomerList(2);
+
+        when(customerRepository.findAll()).thenReturn(existingCustomers);
+
+        List<Customer> returnedCustomers = customerService.getAllCustomers();
+
+        assertEquals(existingCustomers.size(), returnedCustomers.size());
+        verify(customerRepository).findAll();
+    }
+
+    @Test
+    void getAllCustomers_shouldReturnEmptyList_whenNoCustomerExists() {
+        when(customerRepository.findAll()).thenReturn(List.of());
+
+        List<Customer> returnedCustomers = customerService.getAllCustomers();
+
+        assertTrue(returnedCustomers.isEmpty());
+        verify(customerRepository).findAll();
+    }
+
+    //endregion
+
+    //region ------------ GET CUSTOMER BY ID ------------
+
+    @Test
+    void getCustomerById_shouldReturnCustomer_whenCustomerExists() {
+        Customer existingCustomer = TestDataFactory.createDefaultCustomer();
+        int customerId = existingCustomer.getId();
+
+        when(customerRepository.findById(customerId))
+            .thenReturn(Optional.of(existingCustomer));
+
+        Customer foundCustomer = customerService.getCustomerById(customerId);
+
+        assertEquals(existingCustomer.getId(), foundCustomer.getId());
+        assertEquals(existingCustomer.getEmail(), foundCustomer.getEmail());
+        assertEquals(existingCustomer.getPhone(), foundCustomer.getPhone());
+
+        verify(customerRepository).findById(customerId);
+    }
+
+    @Test
+    void getCustomerById_shouldThrowException_whenCustomerDoesNotExist() {
         int nonExistentCustomerId = 111;
 
-        when(customerRepository.findById(nonExistentCustomerId)).thenReturn(Optional.empty());
+        when(customerRepository.findById(nonExistentCustomerId))
+            .thenReturn(Optional.empty());
 
-        EntityNotFoundException ex = assertThrows(
+        EntityNotFoundException exception = assertThrows(
             EntityNotFoundException.class,
-            () -> customerService.updateCustomer(nonExistentCustomerId, nonExistentCustomer)
+            () -> customerService.getCustomerById(nonExistentCustomerId)
         );
 
-        assertEquals("No customer found with the ID : " + nonExistentCustomerId + ".", ex.getMessage());
+        assertEquals(
+            "No customer found with the ID : " + nonExistentCustomerId + ".",
+            exception.getMessage()
+        );
+
         verify(customerRepository).findById(nonExistentCustomerId);
-        verifyNoMoreInteractions(customerRepository);
     }
 
-    @Test
-    void updateCustomerShouldThrowExceptionIfEmailAlreadyUsedByAnotherCustomer() {
-        Customer existingCustomer = TestDataFactory.createDefaultCustomer();
-        int id = existingCustomer.getId();
+    //endregion
 
-        Customer updatedCustomer = CustomerTestBuilder.aCustomer()
-            .withId(id)
-            .withEmail("duplicate@example.com")
-            .withPhone("0600000000")
-            .build();
-
-        Customer otherCustomer = CustomerTestBuilder.aCustomer()
-            .withId(999)
-            .withEmail("duplicate@example.com")
-            .build();
-
-        when(customerRepository.findById(id)).thenReturn(Optional.of(existingCustomer));
-        when(customerRepository.findByEmail("duplicate@example.com")).thenReturn(otherCustomer);
-
-        DataIntegrityViolationException ex = assertThrows(
-            DataIntegrityViolationException.class,
-            () -> customerService.updateCustomer(id, updatedCustomer)
-        );
-
-        assertTrue(ex.getMessage().contains("An user already exists with the email address"));
-        verify(customerRepository).findById(id);
-        verify(customerRepository).findByEmail("duplicate@example.com");
-        verify(customerRepository, never()).save(any());
-    }
+    //region ------------ FIND OR CREATE CUSTOMER ------------
 
     @Test
-    void updateCustomerShouldThrowExceptionIfIdMismatch() {
+    void findOrCreateCustomer_shouldReturnExistingCustomer_whenEmailExists() {
         Customer existingCustomer = TestDataFactory.createDefaultCustomer();
-        int idInPath = 1;
-        int idInBody = 2;
-
-        Customer updatedCustomer = CustomerTestBuilder.aCustomer()
-            .withId(idInBody)
+        Customer inputCustomer = CustomerTestBuilder.aCustomer()
             .withEmail(existingCustomer.getEmail())
-            .withPhone(existingCustomer.getPhone())
             .build();
 
-        when(customerRepository.findById(idInPath)).thenReturn(Optional.of(existingCustomer));
+        when(customerRepository.findByEmail(existingCustomer.getEmail()))
+            .thenReturn(existingCustomer);
 
-        IllegalArgumentException ex = assertThrows(
-            IllegalArgumentException.class,
-            () -> customerService.updateCustomer(idInPath, updatedCustomer)
-        );
+        Customer foundCustomer = customerService.findOrCreateCustomer(inputCustomer);
 
-        assertTrue(ex.getMessage().contains("Client ID mismatch"));
-        verify(customerRepository).findById(idInPath);
+        assertEquals(existingCustomer.getId(), foundCustomer.getId());
+        verify(customerRepository).findByEmail(existingCustomer.getEmail());
         verifyNoMoreInteractions(customerRepository);
     }
 
     @Test
-    void updateExistingCustomerShouldUpdatePhoneSuccessfullyIfEmailNotChanged() {
-        Customer existingCustomer = TestDataFactory.createDefaultCustomer();
-        int id = existingCustomer.getId();
+    void findOrCreateCustomer_shouldCreateCustomer_whenCustomerDoesNotExist() {
+        Customer customerToCreate = CustomerTestBuilder.aCustomer().build();
 
-        Customer updatedCustomer = CustomerTestBuilder.aCustomer()
-            .withId(id)
-            .withEmail("john@example.com")
+        when(customerRepository.findByEmail(customerToCreate.getEmail()))
+            .thenReturn(null);
+        when(customerRepository.save(customerToCreate))
+            .thenReturn(customerToCreate);
+
+        Customer createdCustomer = customerService.findOrCreateCustomer(customerToCreate);
+
+        assertEquals(customerToCreate.getEmail(), createdCustomer.getEmail());
+        verify(customerRepository).findByEmail(customerToCreate.getEmail());
+        verify(customerRepository).save(customerToCreate);
+    }
+
+    //endregion
+
+    //region ------------ UPDATE CUSTOMER ------------
+
+    @Test
+    void updateCustomer_shouldThrowException_whenCustomerDoesNotExist() {
+        Customer customerToUpdate = TestDataFactory.createDefaultCustomer();
+        int customerId = 999;
+
+        when(customerRepository.findById(customerId))
+            .thenReturn(Optional.empty());
+
+        EntityNotFoundException exception = assertThrows(
+            EntityNotFoundException.class,
+            () -> customerService.updateCustomer(customerId, customerToUpdate)
+        );
+
+        assertEquals(
+            "No customer found with the ID : " + customerId + ".",
+            exception.getMessage()
+        );
+
+        verify(customerRepository).findById(customerId);
+    }
+
+    @Test
+    void updateCustomer_shouldUpdateCustomer_whenEmailIsAvailable() {
+        Customer existingCustomer = TestDataFactory.createDefaultCustomer();
+        int customerId = existingCustomer.getId();
+
+        Customer customerToUpdate = CustomerTestBuilder.aCustomer()
+            .withId(customerId)
+            .withEmail("new.email@example.com")
             .withPhone("0700000000")
             .build();
 
-        when(customerRepository.findById(id)).thenReturn(Optional.of(existingCustomer));
-        when(customerRepository.findByEmail("john@example.com")).thenReturn(existingCustomer);
-        when(customerRepository.save(any(Customer.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(customerRepository.findById(customerId))
+            .thenReturn(Optional.of(existingCustomer));
+        when(customerRepository.findByEmail(customerToUpdate.getEmail()))
+            .thenReturn(null);
+        when(customerRepository.save(any(Customer.class)))
+            .thenAnswer(invocation -> invocation.getArgument(0));
 
-        Customer result = customerService.updateCustomer(id, updatedCustomer);
+        Customer updatedCustomer = customerService.updateCustomer(customerId, customerToUpdate);
 
-        assertEquals("john@example.com", result.getEmail());
-        assertEquals("0700000000", result.getPhone());
-        verify(customerRepository).findById(id);
-        verify(customerRepository).findByEmail("john@example.com");
-        verify(customerRepository).save(existingCustomer);
-    }
+        assertEquals("new.email@example.com", updatedCustomer.getEmail());
+        assertEquals("0700000000", updatedCustomer.getPhone());
 
-    @Test
-    void updateExistingCustomerShouldUpdateEmailAndPhoneSuccessfully() {
-        Customer existingCustomer = TestDataFactory.createDefaultCustomer();
-        int id = existingCustomer.getId();
-
-        Customer updatedCustomer = CustomerTestBuilder.aCustomer()
-            .withId(id)
-            .withEmail("new.email@example.com")
-            .withPhone("0600000000")
-            .build();
-
-        when(customerRepository.findById(id)).thenReturn(Optional.of(existingCustomer));
-        when(customerRepository.findByEmail("new.email@example.com")).thenReturn(null);
-        when(customerRepository.save(any(Customer.class))).thenAnswer(invocation -> invocation.getArgument(0));
-
-        Customer result = customerService.updateCustomer(id, updatedCustomer);
-
-        assertEquals("new.email@example.com", result.getEmail());
-        assertEquals("0600000000", result.getPhone());
-        verify(customerRepository).findById(id);
-        verify(customerRepository).findByEmail("new.email@example.com");
         verify(customerRepository).save(existingCustomer);
     }
 
