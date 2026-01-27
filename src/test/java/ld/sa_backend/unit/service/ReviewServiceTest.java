@@ -1,4 +1,4 @@
-package ld.sa_backend.service;
+package ld.sa_backend.unit.service;
 
 import java.util.List;
 
@@ -25,6 +25,8 @@ import ld.sa_backend.entity.Review;
 import ld.sa_backend.enums.ReviewType;
 import ld.sa_backend.external.nlp.FeelingAnalyser;
 import ld.sa_backend.repository.ReviewRepository;
+import ld.sa_backend.service.CustomerService;
+import ld.sa_backend.service.ReviewService;
 import ld.sa_backend.testutils.CustomerTestBuilder;
 import ld.sa_backend.testutils.ReviewTestBuilder;
 import ld.sa_backend.testutils.TestDataFactory;

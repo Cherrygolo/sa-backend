@@ -1,4 +1,4 @@
-package ld.sa_backend.service;
+package ld.sa_backend.unit.service;
 
 import java.util.List;
 import java.util.Optional;
@@ -22,6 +22,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import jakarta.persistence.EntityNotFoundException;
 import ld.sa_backend.entity.Customer;
 import ld.sa_backend.repository.CustomerRepository;
+import ld.sa_backend.service.CustomerService;
 import ld.sa_backend.testutils.CustomerTestBuilder;
 import ld.sa_backend.testutils.TestDataFactory;
 
