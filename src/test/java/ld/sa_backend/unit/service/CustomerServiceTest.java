@@ -220,6 +220,40 @@ class CustomerServiceTest {
     //region ------------ UPDATE CUSTOMER ------------
 
     @Test
+    void updateCustomer_shouldThrowException_whenIdMismatch() {
+        int pathId = 1;
+
+        Customer customerToUpdate = CustomerTestBuilder.aCustomer()
+            .withId(2) // ID différent de pathId pour déclencher le if
+            .withEmail("test@example.com")
+            .withPhone("0700000000")
+            .build();
+
+        // Mock pour getCustomerById
+        Customer existingCustomer = CustomerTestBuilder.aCustomer()
+            .withId(pathId)
+            .withEmail("old@example.com")
+            .build();
+
+        when(customerRepository.findById(pathId))
+            .thenReturn(Optional.of(existingCustomer));
+
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> customerService.updateCustomer(pathId, customerToUpdate)
+        );
+
+        assertEquals(
+            "Client ID mismatch: path ID = " + pathId + ", request body ID = " + customerToUpdate.getId() + ".",
+            exception.getMessage()
+        );
+
+        // Vérifie que save n'a jamais été appelé
+        verify(customerRepository, never()).save(any());
+    }
+
+
+    @Test
     void updateCustomer_shouldThrowException_whenCustomerDoesNotExist() {
         Customer customerToUpdate = TestDataFactory.createDefaultCustomer();
         int customerId = 999;
@@ -238,6 +272,43 @@ class CustomerServiceTest {
         );
 
         verify(customerRepository).findById(customerId);
+    }
+
+    @Test
+    void updateCustomer_shouldThrowException_whenEmailIsNotAvailable() {
+
+        Customer existingCustomerWithSpecificEmail = CustomerTestBuilder.aCustomer()
+            .withId(1)
+            .withEmail("existing.email@example.com")
+            .build();
+
+        String existingEmail = existingCustomerWithSpecificEmail.getEmail();
+
+        Customer existingCustomer = TestDataFactory.createCompleteCustomerWithId(2);
+        int customerId = existingCustomer.getId();
+
+        Customer customerToUpdate = CustomerTestBuilder.aCustomer()
+            .withId(customerId)
+            .withEmail(existingEmail)
+            .withPhone("0700000000")
+            .build();
+
+        when(customerRepository.findById(customerId))
+            .thenReturn(Optional.of(existingCustomer));
+        when(customerRepository.findByEmail(customerToUpdate.getEmail()))
+            .thenReturn(existingCustomerWithSpecificEmail);
+
+        DataIntegrityViolationException exception = assertThrows(
+            DataIntegrityViolationException.class,
+            () ->customerService.updateCustomer(customerId, customerToUpdate)
+        );
+
+        assertEquals(
+            "An user already exists with the email address : " + existingEmail ,
+            exception.getMessage()
+        );
+
+        verify(customerRepository).findByEmail(customerToUpdate.getEmail());
     }
 
     @Test
