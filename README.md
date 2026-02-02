@@ -171,9 +171,10 @@ En cas d’erreur ou de réponse invalide, un **fallback automatique** renvoie u
 
 Si aucun token n’est fourni, une analyse simplifiée est appliquée :
 
-- Recherche de mots-clés négatifs (`ne`, `n'`, `pas`)
-- Présence détectée → `NEGATIVE`
-- Sinon → `POSITIVE`
+- Détection de marqueurs de négation (`ne`, `n'`, `pas`, `jamais`, `aucun`, `sans`)  
+- Analyse de quelques mots simples indicateurs de sentiment (`bon`, `bien`, `ok` pour positif ; `mal`, `non`, `nul` pour négatif)  
+- Une négation s’applique au mot qui suit (ex. `pas bon` → négatif)  
+- Score final calculé : positif → `POSITIVE`, négatif → `NEGATIVE` 
 
 ⚠️ Cette méthode est volontairement basique et sert uniquement de solution de secours.
 
