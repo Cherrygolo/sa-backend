@@ -9,26 +9,27 @@ import jakarta.persistence.Table;
 @Entity
 @Table (name = "customer")
 public class Customer {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Integer id;
+
     private String email;
     private String phone;
 
-    public Customer() {
+    protected Customer() {
     }
 
-    public Customer(String email, int id, String phone) {
+    public Customer(String email, String phone) {
         this.email = email;
-        this.id = id;
         this.phone = phone;
     }
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
@@ -47,5 +48,4 @@ public class Customer {
     public void setPhone(String phone) {
         this.phone = phone;
     }
-
 }

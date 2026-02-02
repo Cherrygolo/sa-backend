@@ -143,7 +143,7 @@ class CustomerServiceTest {
 
     @Test
     void getCustomerById_shouldReturnCustomer_whenCustomerExists() {
-        Customer existingCustomer = TestDataFactory.createDefaultCustomer();
+        Customer existingCustomer = TestDataFactory.createCompleteCustomerWithId(1);
         int customerId = existingCustomer.getId();
 
         when(customerRepository.findById(customerId))
@@ -242,7 +242,7 @@ class CustomerServiceTest {
 
     @Test
     void updateCustomer_shouldUpdateCustomer_whenEmailIsAvailable() {
-        Customer existingCustomer = TestDataFactory.createDefaultCustomer();
+        Customer existingCustomer = TestDataFactory.createCompleteCustomerWithId(1);
         int customerId = existingCustomer.getId();
 
         Customer customerToUpdate = CustomerTestBuilder.aCustomer()

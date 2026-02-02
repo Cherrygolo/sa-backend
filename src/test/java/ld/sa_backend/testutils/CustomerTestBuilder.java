@@ -9,14 +9,15 @@ package ld.sa_backend.testutils;
 import ld.sa_backend.entity.Customer;
 
 public class CustomerTestBuilder {
+
     private String email = "customer@test.com";
-    private Integer id = 1;
     private String phone = "0600000000";
-    
+    private Integer id = null;
+
     public static CustomerTestBuilder aCustomer() {
         return new CustomerTestBuilder();
     }
-    
+
     public CustomerTestBuilder withEmail(String email) {
         this.email = email;
         return this;
@@ -26,13 +27,17 @@ public class CustomerTestBuilder {
         this.id = id;
         return this;
     }
-    
+
     public CustomerTestBuilder withPhone(String phone) {
         this.phone = phone;
         return this;
     }
-    
+
     public Customer build() {
-        return new Customer(email, id, phone);
+        Customer customer = new Customer(email, phone);
+        if (id != null) {
+            customer.setId(id);
+        }
+        return customer;
     }
 }

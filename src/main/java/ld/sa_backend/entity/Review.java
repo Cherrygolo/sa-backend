@@ -1,13 +1,11 @@
 package ld.sa_backend.entity;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.EnumType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -20,7 +18,7 @@ public class Review {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Integer id;
     private String text;
 
     @Enumerated(EnumType.STRING)
@@ -33,25 +31,16 @@ public class Review {
     public Review() {
     }
 
-    public Review(int id, Customer customer, String text, ReviewType type) {
-        this.id = id;
-        this.customer = customer; 
-        this.text = text;
-        this.type = type;
-        
-    }
-
-    public Review(int id, Customer customer, String text) {
-        this.id = id;
+    public Review(Customer customer, String text) {
         this.customer = customer; 
         this.text = text;        
     }
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 

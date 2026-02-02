@@ -12,7 +12,7 @@ import ld.sa_backend.entity.Review;
 import ld.sa_backend.enums.ReviewType;
 
 public class ReviewTestBuilder {
-    private Integer id = 1;
+    private Integer id = null;
     private Customer customer = TestDataFactory.createDefaultCustomer();
     private String text = "Très bonne expérience!";
     private ReviewType type = null;
@@ -42,7 +42,10 @@ public class ReviewTestBuilder {
     }
     
     public Review build() {
-        Review review = new Review(id, customer, text);
+        Review review = new Review(customer, text);
+        if (id != null) {
+            review.setId(id);
+        }
         if (type != null) {
             review.setType(type);
         }
