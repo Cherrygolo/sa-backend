@@ -257,9 +257,7 @@ Les évolutions suivantes sont volontairement identifiées afin de démontrer la
 - Ajout de Swagger / OpenAPI
 - Sécurisation de l’API (JWT / Spring Security)
 - Centralisation de la configuration via variables d’environnement
-- Séparation des environnements (dev / prod)
 - Ajout d’un front-end (Angular ou React)
-- Renforcement de la couverture de tests
 - Mise en place de métriques et de monitoring
 
 ---
