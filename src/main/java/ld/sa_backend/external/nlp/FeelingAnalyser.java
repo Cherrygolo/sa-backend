@@ -12,6 +12,7 @@ import java.nio.charset.StandardCharsets;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.*;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
@@ -94,18 +95,37 @@ public class FeelingAnalyser {
     }
 
     /**
-     * Analyse whether a text is positive or negative based on the presence of basic negative words
-     * @param textToAnalyse
-     * @return {@link ReviewType#NEGATIVE} if it contains negative words, {@link ReviewType#POSITIVE} ifnot
+     * Analyse le sentiment d'un texte (positif ou négatif) de manière simple.
+     * Utilise quelques marqueurs de négation et mots courts indicateurs de sentiment.
+     * Solution de secours lorsque l'API NLP externe n'est pas disponible.
+     *
+     * @param text le texte à analyser
+     * @return ReviewType.POSITIVE ou ReviewType.NEGATIVE
      */
-    private static ReviewType analyseTextFeelingTypeBasicly(String textToAnalyse) {
-        if ( 
-            textToAnalyse.contains("ne") || textToAnalyse.contains("n'") 
-            || textToAnalyse.contains("pas")
-        ) {
-            return ReviewType.NEGATIVE;
+    private static ReviewType analyseTextFeelingTypeBasicly(String text) {
+        // Marqueurs simples
+        String[] negations = {"ne", "n'", "pas", "jamais", "aucun", "sans"};
+        String[] simplePositive = {"bon", "bien", "ok"};
+        String[] simpleNegative = {"mal", "non", "nul"};
+
+        int score = 0;
+        boolean negateNext = false;
+
+        String[] words = text.toLowerCase().split("\\W+");
+        for (String word : words) {
+            if (Arrays.asList(negations).contains(word)) {
+                negateNext = true;
+                continue;
+            }
+            if (Arrays.asList(simplePositive).contains(word)) {
+                score += negateNext ? -1 : 1;
+            } else if (Arrays.asList(simpleNegative).contains(word)) {
+                score += negateNext ? 1 : -1;
+            }
+            negateNext = false; // une négation ne s'applique qu'au mot suivant
         }
-        return ReviewType.POSITIVE;
+
+        return score >= 0 ? ReviewType.POSITIVE : ReviewType.NEGATIVE;
     }
 
 
