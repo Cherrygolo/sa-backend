@@ -68,6 +68,9 @@ src/
  └── resources/
      ├── application.properties
      └── docker-compose.yml
+ └── test/
+     ├──unit/ → tests unitaires
+     ├──it/ → tests d’intégration
 ```
 
 ---
