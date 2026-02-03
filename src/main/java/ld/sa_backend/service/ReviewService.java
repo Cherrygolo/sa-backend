@@ -24,24 +24,34 @@ public class ReviewService {
     
     public Review createReview(Review review) {
 
-        String reviewText = review.getText();
-
-        if (reviewText == null || reviewText.isBlank()) {
+        if (review.getText() == null || review.getText().isBlank()) {
             throw new IllegalArgumentException("Review text cannot be null or empty.");
         }
 
-        // Vérification de l'existence de l'avis
-        Customer reviewCustomer = this.customerService.findOrCreateCustomer(review.getCustomer());
-        review.setCustomer(reviewCustomer);
+        Customer customer = review.getCustomer();
+        if (customer == null) {
+            throw new IllegalArgumentException("Customer info must be provided.");
+        }
 
-        // Analyse du type de sentiment
-        ReviewType reviewType = FeelingAnalyser.analyzeFeelingType(review.getText());
-        review.setType(reviewType);
+        // Si l'ID est présent, customer existant
+        if (customer.getId() != null) {
+            customer = customerService.getCustomerById(customer.getId());
+        } else {
+            // Sinon, création du customer si email présent
+            if (customer.getEmail() == null || customer.getEmail().isBlank()) {
+                throw new IllegalArgumentException("Email is required to create a new review");
+            }
+            customer = customerService.findOrCreateCustomer(customer);
+        }
 
-        // save() renvoie l'entité créée, avec son ID généré
-        return this.reviewRepository.save(review);
+        review.setCustomer(customer);
+
+        // Analyse du type
+        review.setType(FeelingAnalyser.analyzeFeelingType(review.getText()));
+
+        return reviewRepository.save(review);
     }
-    
+
     public List<Review> findReviews(ReviewType reviewType) {
 
         if (reviewType == null) {
