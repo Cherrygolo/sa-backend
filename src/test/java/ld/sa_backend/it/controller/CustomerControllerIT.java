@@ -20,6 +20,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -92,6 +93,17 @@ class CustomerControllerIT {
                 .andExpect(jsonPath("$.code").value("CONFLICT_WITH_EXISTING_DATA"));
     }
 
+    @Test
+    void createCustomer_shouldReturnRequestBodyInvalid_whenJsonMalformed() throws Exception {
+        String invalidJson = "{ \"email\": \"example@test.com\" "; // JSON mal formé
+
+        mockMvc.perform(post("/customer")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(invalidJson))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.code").value("REQUEST_BODY_INVALID"));
+    }
+
     //endregion
 
     //region ------------ GET CUSTOMER ------------
@@ -104,6 +116,39 @@ class CustomerControllerIT {
     }
 
     //endregion
+
+    //region ------------ UPDATE CUSTOMER ------------
+
+    @Test
+    void updateCustomer_shouldUpdateCustomer_whenCustomerExists() throws Exception {
+        Integer customerId = persistedCustomer.getId();
+
+        Customer customerToUpdate = CustomerTestBuilder.aCustomer()
+            .withId(customerId) // même ID que celui du client existant
+            .withEmail("updated@test.com")
+            .withPhone("0622222222")
+            .build();
+
+        mockMvc.perform(put("/customer/{id}", customerId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(customerToUpdate)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.email").value("updated@test.com"));
+    }
+
+    @Test
+    void updateCustomer_shouldReturnArgumentsInvalid_whenIdMismatch() throws Exception {
+        Customer customerToUpdate = CustomerTestBuilder.aCustomer()
+            .withId(persistedCustomer.getId() + 1)
+            .withEmail("new@test.com")
+            .build();
+
+        mockMvc.perform(put("/customer/{id}", persistedCustomer.getId())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(customerToUpdate)))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.code").value("ARGUMENTS_INVALID"));
+    }
 
     //region ------------ DELETE CUSTOMER ------------
 

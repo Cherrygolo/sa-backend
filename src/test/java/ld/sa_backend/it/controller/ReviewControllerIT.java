@@ -133,6 +133,13 @@ class ReviewControllerIT {
             .andExpect(jsonPath("$[0].text").value("Je ne suis pas satisfait"));
     }
 
+    @Test
+    void findReviews_shouldReturnEnumValueInvalid_whenTypeIsInvalid() throws Exception {
+        mockMvc.perform(get("/review").param("type", "INVALID"))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.code").value("ENUM_VALUE_INVALID"));
+    }
+
     //endregion
 
     //region ------------ DELETE REVIEW ------------
