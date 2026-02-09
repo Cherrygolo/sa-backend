@@ -195,7 +195,11 @@ L’intégration de Swagger / OpenAPI est identifiée comme une **évolution nat
 
 ### Clients
 
-**POST /api/v1/customer**
+#### POST /api/v1/customer
+
+Crée un nouveau client.  
+
+**Exemple de corps :**
 
 ```json
 {
@@ -204,24 +208,189 @@ L’intégration de Swagger / OpenAPI est identifiée comme une **évolution nat
 }
 ```
 
-**GET /api/v1/customer**
+**Réponses :**
+
+201 Created : client créé avec succès
+
+400 Bad Request : données invalides
+
+#### GET /api/v1/customer
+
+Récupère tous les clients.
+
+Exemple de réponse :
+
+```json
+[
+  { 
+    "id": 1, 
+    "email": "alice@example.com", 
+    "phone": "0601020304" 
+  },
+  { 
+    "id": 2, 
+    "email": "bob@example.com", 
+    "phone": "0602030405" 
+  }
+]
+```
+
+#### PUT /api/v1/customer/\{ID\}
+
+Met à jour un client existant correspondant à l' ID pour correspondre aux informations pasées dans le corps
+
+
+**Exemple de corps :**
+
+```json
+{
+  "id": 1,
+  "email": "alice.new@example.com",
+  "phone": "0604050607"
+}
+```
+
+Règles :
+
+- L’id dans le corps doit correspondre à l’id dans l’URL.
+- L’email doit être unique, soit ne pas être déjà utilisée par un client existant.
+
+
+**Réponses :**
+
+- 200 OK : client mis à jour avec succès, corps = client mis à jour.
+
+- 400 Bad Request (code : ARGUMENTS_INVALID) : ID dans l’URL et id dans le corps ne correspondent pas.
+
+- 409 Conflict (code : CONFLICT_WITH_EXISTING_DATA) : l’email est déjà utilisé par un autre client.
+
+- 404 Not Found : aucun client avec l’ID fourni existe.
+
+
+**Exemple de réponse 200 OK :**
+
+{
+  "id": 1,
+  "email": "alice.new@example.com",
+  "phone": "0604050607"
+}
+
+#### DELETE /api/v1/customer/\{ID\}
+
+Supprime un client existant correspondant à l'ID fourni.
+
+**Réponses :**
+
+- 204 No Content : client supprimé avec succès
+
+- 404 Not Found : aucun client trouvé avec l’ID fourni
+
+{
+  "code": "ENTITY_NOT_FOUND",
+  "message": "No customer found with the ID : 1."
+}
+
+
+409 Conflict : le client a des avis associés et ne peut pas être supprimé
 
 ---
 
 ### Avis
 
-**POST /api/v1/review**
+#### POST /api/v1/review
+
+Crée un avis pour un client existant ou nouveau à créer.
+
+**Si client déjà existant :**
 
 ```json
 {
-  "text": "Service rapide et équipe très sympathique !",
-  "customerId": 1
+  "text": "Super merci !",
+  "customer": {
+    "id": 12
+  }
 }
 ```
 
-**GET /api/v1/review**
+**Si nouveau client :**
 
-**GET /api/v1/review?type=POSITIVE**
+```json
+{
+  "text": "Super merci !",
+  "customer": {
+    "email": "example@gmail.com",
+    "phone": "123456789"
+  }
+}
+```
+
+email : obligatoire pour créer un nouveau client.
+
+phone : optionnel.
+
+**Réponse :**
+
+Code :
+- 201 Created
+
+- 404 Bad Request : 
+  - code REQUEST_BODY_INVALID : le JSON du corps est incorrect ;
+  - code ARGUMENT_INVALIDS : le customer ou customer.email ou text sont manquant(s)/vide(s)
+
+- 404 Not found : Si customer.id fourni mais non trouvé
+
+Corps : objet Review créé, avec id, text, type (POSITIVE / NEGATIVE / NEUTRAL) et le customer associé.
+
+####  GET /api/v1/review
+
+Récupère tous les avis.
+
+Paramètres : aucun
+
+**Réponse :**
+
+200 OK
+
+Liste de tous les avis présents en base
+
+#### GET /api/v1/review?type=\{TYPE\}
+
+Récupère :
+- les avis filtrés par type, si un type existant est spécifié 
+- tous les avis existants, si aucune valeur est renseignée.
+
+**Paramètres :**
+
+type : POSITIVE, NEGATIVE ou NEUTRAL
+
+**Exemple :**
+
+GET /api/v1/review?type=POSITIVE
+
+
+**Réponse :**
+
+- 200 OK : Liste des avis correspondant au type demandé
+- 404 Bad request - ENUM_VALUE_INVALID : le type indiqué est une autre valeur que celles attendues.
+
+
+####  GET /api/v1/review/\{ID\}
+
+Informations sur l'avis correspondant à l'ID demandé
+
+#### DELETE /api/v1/review/\{ID\}
+
+Supprime un avis existant.
+
+**Paramètres :**
+
+id : ID de l’avis à supprimer
+
+**Réponse :**
+
+- 204 No Content : suppression réussie
+
+- 404 Not Found : l’avis n’existe pas
 
 ---
 
