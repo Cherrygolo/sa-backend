@@ -9,14 +9,18 @@ import org.springframework.stereotype.Service;
 import jakarta.persistence.EntityNotFoundException;
 import ld.sa_backend.entity.Customer;
 import ld.sa_backend.repository.CustomerRepository;
+import ld.sa_backend.repository.ReviewRepository;
 
 @Service
 public class CustomerService {
 
     private final CustomerRepository customerRepository;
+    private final ReviewRepository reviewRepository;
 
-    public CustomerService(CustomerRepository customerRepository) {
+    public CustomerService(CustomerRepository customerRepository,
+                           ReviewRepository reviewRepository) {
         this.customerRepository = customerRepository;
+        this.reviewRepository = reviewRepository;
     }
 
     public Customer createCustomer(Customer customer) {
@@ -38,6 +42,15 @@ public class CustomerService {
         if (!this.customerRepository.existsById(id)) {
             throw new EntityNotFoundException("No customer found with the ID : " + id + ".");
         }
+
+        boolean hasReviews = reviewRepository.existsByCustomerId(id);
+        if (hasReviews) {
+            throw new DataIntegrityViolationException(
+                "It is not possible to delete the customer with the ID : " + id 
+                + " because it has associated reviews. Please delete the reviews first."
+            );
+        }
+
         this.customerRepository.deleteById(id);
     }
 

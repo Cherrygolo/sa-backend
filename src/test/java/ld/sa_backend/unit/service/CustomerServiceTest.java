@@ -22,6 +22,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import jakarta.persistence.EntityNotFoundException;
 import ld.sa_backend.entity.Customer;
 import ld.sa_backend.repository.CustomerRepository;
+import ld.sa_backend.repository.ReviewRepository;
 import ld.sa_backend.service.CustomerService;
 import ld.sa_backend.testutils.CustomerTestBuilder;
 import ld.sa_backend.testutils.TestDataFactory;
@@ -31,6 +32,9 @@ class CustomerServiceTest {
 
     @Mock
     private CustomerRepository customerRepository;
+
+    @Mock
+    private ReviewRepository reviewRepository;
 
     @InjectMocks
     private CustomerService customerService;
@@ -111,6 +115,29 @@ class CustomerServiceTest {
         verify(customerRepository, never()).deleteById(anyInt());
     }
 
+
+    @Test
+    void deleteCustomer_shouldThrowException_whenCustomerHasAssociatedReviews() {
+        int customerId = 1;
+
+        when(customerRepository.existsById(customerId)).thenReturn(true);
+        when(reviewRepository.existsByCustomerId(customerId)).thenReturn(true);
+
+        DataIntegrityViolationException exception = assertThrows(
+            DataIntegrityViolationException.class,
+            () -> customerService.deleteCustomer(customerId)
+        );
+
+        assertEquals(
+            "It is not possible to delete the customer with the ID : " + customerId 
+            + " because it has associated reviews. Please delete the reviews first.",
+            exception.getMessage()
+        );
+
+        verify(customerRepository).existsById(customerId);
+        verify(reviewRepository).existsByCustomerId(customerId);
+        verify(customerRepository, never()).deleteById(customerId);
+    }
     //endregion
 
     //region ------------ GET ALL CUSTOMERS ------------
