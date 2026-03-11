@@ -16,7 +16,7 @@ CREATE TABLE customer (
 
 CREATE TABLE review (
     id INTEGER PRIMARY KEY NOT NULL AUTO_INCREMENT,
-    text VARCHAR(50),
+    text VARCHAR(1000),
     type VARCHAR(10),
     customer_id INTEGER,
     CONSTRAINT fk_review_customer FOREIGN KEY (customer_id) REFERENCES customer(id)
