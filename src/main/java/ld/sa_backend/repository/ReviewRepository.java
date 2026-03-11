@@ -10,7 +10,9 @@ import ld.sa_backend.enums.ReviewType;
 
 public interface ReviewRepository extends JpaRepository<Review, Integer> {
 
+    List<Review> findAllByOrderByIdDesc();
     List<Review> findByType(ReviewType type);
+    List<Review> findByTypeOrderByIdDesc(ReviewType type);
     boolean existsByCustomerId(int customerId);
 
 }

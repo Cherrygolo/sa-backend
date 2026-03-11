@@ -51,14 +51,15 @@ public class ReviewService {
 
         return reviewRepository.save(review);
     }
-
+    
     public List<Review> findReviews(ReviewType reviewType) {
 
         if (reviewType == null) {
-            return this.reviewRepository.findAll();
+            //Tri par date décroissante pour afficher les avis les plus récents en premier
+            return this.reviewRepository.findAllByOrderByIdDesc();
         }
         
-        return this.reviewRepository.findByType(reviewType);
+        return this.reviewRepository.findByTypeOrderByIdDesc(reviewType);
     }
 
     public void deleteReview(int id) {

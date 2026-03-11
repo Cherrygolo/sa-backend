@@ -206,13 +206,13 @@ class ReviewServiceTest {
 
         List<Review> existingReviews = List.of(positiveReview, negativeReview);
 
-        when(reviewRepository.findAll()).thenReturn(existingReviews);
+        when(reviewRepository.findAllByOrderByIdDesc()).thenReturn(existingReviews);
 
         List<Review> foundReviews = reviewService.findReviews(null);
 
         assertEquals(2, foundReviews.size());
-        verify(reviewRepository).findAll();
-        verify(reviewRepository, never()).findByType(any());
+        verify(reviewRepository).findAllByOrderByIdDesc();
+        verify(reviewRepository, never()).findByTypeOrderByIdDesc(any());
     }
 
     @Test
@@ -240,7 +240,7 @@ class ReviewServiceTest {
             .withType(ReviewType.POSITIVE)
             .build();
 
-        when(reviewRepository.findByType(ReviewType.NEGATIVE))
+        when(reviewRepository.findByTypeOrderByIdDesc(ReviewType.NEGATIVE))
             .thenReturn(List.of(negativeReview1, negativeReview2));
 
         List<Review> foundReviews = reviewService.findReviews(ReviewType.NEGATIVE);
@@ -250,8 +250,8 @@ class ReviewServiceTest {
             review -> review.getType() == ReviewType.NEGATIVE
         ));
 
-        verify(reviewRepository).findByType(ReviewType.NEGATIVE);
-        verify(reviewRepository, never()).findAll();
+        verify(reviewRepository).findByTypeOrderByIdDesc(ReviewType.NEGATIVE);
+        verify(reviewRepository, never()).findAllByOrderByIdDesc();
     }
 
     //endregion
