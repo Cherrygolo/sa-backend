@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 
 import ld.sa_backend.entity.Review;
 import ld.sa_backend.enums.ReviewType;
+import ld.sa_backend.projection.ReviewCountProjection;
 
 
 public interface ReviewRepository extends JpaRepository<Review, Integer> {
@@ -17,7 +18,11 @@ public interface ReviewRepository extends JpaRepository<Review, Integer> {
     
     boolean existsByCustomerId(int customerId);
 
-    @Query("SELECT r.type, COUNT(r) FROM Review r GROUP BY r.type")
-    List<Object[]> countReviewsByType();
+    @Query("""
+    SELECT r.type AS type, COUNT(r) AS count
+    FROM Review r
+    GROUP BY r.type
+    """)
+    List<ReviewCountProjection> countReviewsByType();
 
 }
