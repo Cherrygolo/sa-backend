@@ -396,6 +396,80 @@ id : ID de l’avis à supprimer
 
 - 404 Not Found : l’avis n’existe pas
 
+#### GET /api/v1/review/stats
+
+Récupère les statistiques globales des avis.
+
+Paramètres :
+Aucun
+
+**Réponse :**
+
+200 OK
+
+Exemple de réponse :
+```json
+{
+  "positiveReviews": 80,
+  "negativeReviews": 30,
+  "neutralReviews": 10
+}
+```
+
+---
+
+### Actuator
+
+Les endpoints Actuator permettent de surveiller l'état et les métriques de l'application.
+
+####GET /actuator/health
+
+Indique l'état de l'application.
+
+**Réponse :** 
+
+200 OK
+
+Exemple de réponse :
+```json
+{
+  "status": "UP",
+  "components": {
+    "db": {
+      "status": "UP",
+      "details": {
+        "database": "MariaDB",
+        "validationQuery": "isValid()"
+      }
+    },
+    "diskSpace": {
+      "status": "UP",
+      "details": {
+        "total": 499963174912,
+        "free": 123456789012,
+        "threshold": 10485760,
+        "exists": true
+      }
+    }
+  }
+}
+```
+
+Explication rapide de la réponse :
+
+- status :
+
+  - UP → application OK
+
+  - DOWN → problème global
+
+- components : chaque sous-système exposé par Actuator.
+ex :
+db → connectivité base de données
+diskSpace → espace disque
+
+- details : informations techniques propres à chaque composant
+
 ---
 
 ## Technologies utilisées
