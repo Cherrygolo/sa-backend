@@ -1,14 +1,18 @@
 package ld.sa_backend.service;
 
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.stereotype.Service;
 
 import jakarta.persistence.EntityNotFoundException;
+import ld.sa_backend.dto.ReviewStatsDTO;
 import ld.sa_backend.entity.Customer;
 import ld.sa_backend.entity.Review;
 import ld.sa_backend.enums.ReviewType;
 import ld.sa_backend.external.nlp.FeelingAnalyser;
+import ld.sa_backend.projection.ReviewCountProjection;
 import ld.sa_backend.repository.ReviewRepository;
 
 @Service
@@ -60,6 +64,23 @@ public class ReviewService {
         }
         
         return this.reviewRepository.findByTypeOrderByIdDesc(reviewType);
+    }
+
+    public ReviewStatsDTO getReviewStats() {
+
+    List<ReviewCountProjection> results = reviewRepository.countReviewsByType();
+
+        Map<ReviewType, Long> reviewsCountByType = new EnumMap<>(ReviewType.class);
+
+        for (ReviewCountProjection row : results) {
+            reviewsCountByType.put(row.getType(), row.getCount());
+        }
+
+        return new ReviewStatsDTO(
+            reviewsCountByType.getOrDefault(ReviewType.POSITIVE, 0L),
+            reviewsCountByType.getOrDefault(ReviewType.NEGATIVE, 0L),
+            reviewsCountByType.getOrDefault(ReviewType.NEUTRAL, 0L)
+        );
     }
 
     public void deleteReview(int id) {
