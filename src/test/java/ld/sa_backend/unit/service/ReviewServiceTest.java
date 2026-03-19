@@ -1,5 +1,6 @@
 package ld.sa_backend.unit.service;
 
+import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -20,10 +21,12 @@ import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import jakarta.persistence.EntityNotFoundException;
+import ld.sa_backend.dto.ReviewStatsDTO;
 import ld.sa_backend.entity.Customer;
 import ld.sa_backend.entity.Review;
 import ld.sa_backend.enums.ReviewType;
 import ld.sa_backend.external.nlp.FeelingAnalyser;
+import ld.sa_backend.projection.ReviewCountProjection;
 import ld.sa_backend.repository.ReviewRepository;
 import ld.sa_backend.service.CustomerService;
 import ld.sa_backend.service.ReviewService;
@@ -256,6 +259,36 @@ class ReviewServiceTest {
 
     //endregion
 
+    //region ------------ GET REVIEW STATS ------------
+    @Test
+    void getReviewStats_shouldReturnCorrectStats() {
+        List<ReviewCountProjection> mockData = List.of(
+            new ReviewCountProjectionImpl(ReviewType.POSITIVE, 5),
+            new ReviewCountProjectionImpl(ReviewType.NEGATIVE, 2)
+        );
+
+        when(reviewRepository.countReviewsByType()).thenReturn(mockData);
+
+        ReviewStatsDTO result = reviewService.getReviewStats();
+
+        assertEquals(5, result.getPositive());
+        assertEquals(2, result.getNegative());
+        assertEquals(0, result.getNeutral());
+    }
+
+    @Test
+    void getReviewStats_shouldReturnZeroWhenNoReviews() {
+
+        when(reviewRepository.countReviewsByType()).thenReturn(Collections.emptyList());
+
+        ReviewStatsDTO result = reviewService.getReviewStats();
+
+        assertEquals(0, result.getPositive());
+        assertEquals(0, result.getNegative());
+        assertEquals(0, result.getNeutral());
+    }
+
+
     //region ------------ DELETE REVIEW ------------
 
     @Test
@@ -291,4 +324,17 @@ class ReviewServiceTest {
     }
 
     //endregion
+
+    static class ReviewCountProjectionImpl implements ReviewCountProjection {
+        private final ReviewType type;
+        private final long count;
+
+        ReviewCountProjectionImpl(ReviewType type, long count) {
+            this.type = type;
+            this.count = count;
+        }
+
+        public ReviewType getType() { return type; }
+        public long getCount() { return count; }
+    }
 }
