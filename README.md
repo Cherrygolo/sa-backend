@@ -57,14 +57,17 @@ L’application suit une architecture en couches, favorisant la lisibilité, la 
 src/
  └── main/
      └── java/ld/sa_backend/
+         ├── config          → configuration globale de l'application (ex: CORS)
          ├── controller      → endpoints REST (Customer, Review)
          ├── dto             → objets de transfert (DTO)
          ├── entity          → entités JPA (Customer, Review)
          ├── enums           → types métier (ReviewType)
          ├── exception       → gestion centralisée des erreurs
          ├── external        → intégration API Hugging Face
+         ├── projection      → interfaces utilisées pour optimiser les requêtes (Spring Data Projections)
          ├── repository      → accès aux données (Spring Data JPA)
-         └── service         → logique métier (analyse de sentiment)
+         ├── service         → logique métier (analyse de sentiment)
+         └── wrapper         → objets de regroupement de données utilisés pour structurer ou enrichir les réponses internes
  └── resources/
      ├── application.properties
      └── docker-compose.yml
