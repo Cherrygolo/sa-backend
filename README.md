@@ -1,10 +1,9 @@
 # Sentiment Analysis Backend (feeltrack-backend)
 
-`feeltrack-backend` est une API REST développée avec **Spring Boot**, permettant d’enregistrer des avis clients et d’en analyser automatiquement le sentiment (positif, neutre ou négatif).
+`feeltrack-backend` est une API REST développée avec **Spring Boot**, permettant de gérer des avis utilisateurs et d’analyser automatiquement leur sentiment (positif, neutre ou négatif).
 
-Ce projet a pour objectif de démontrer la conception d’un **backend Java moderne**, structuré et extensible, prêt à être intégré dans une application front-end (Angular, React…) ou dans un écosystème de microservices.
-
-L’application s’appuie sur des **services d’infrastructure conteneurisés via Docker** (base de données, outil d’administration), tandis que l’API Spring Boot est exécutée localement.
+Ce dépôt contient le backend de l’application full stack FeelTrack.  
+Le frontend (Angular) est développé dans un dépôt séparé : https://github.com/Cherrygolo/feeltrack-frontend.
 
 ---
 
@@ -12,13 +11,14 @@ L’application s’appuie sur des **services d’infrastructure conteneurisés 
 
 Ce projet a été conçu pour illustrer :
 
-- La conception d’une API REST claire et cohérente avec Spring Boot
+- La conception d’une API REST avec Spring Boot, structurée et maintenable
 - Une architecture backend en couches (Controller / Service / Repository)
-- L’intégration d’un **service externe** (API Hugging Face) avec gestion de fallback
-- La persistance des données via JPA
-- L’utilisation de **Docker pour fournir l’infrastructure locale**
-- Des bonnes pratiques applicables à un contexte professionnel
-- Un backend prêt à évoluer vers un environnement de production
+- L’intégration d’un service externe d’analyse de sentiment (API Hugging Face) avec mécanisme de fallback
+- La modélisation et la persistance des données avec JPA / Hibernate
+- La mise en place d’un environnement local reproductible via Docker (base de données + outils d’administration)
+- L’application de bonnes pratiques de développement backend (séparation des responsabilités, testabilité, extensibilité)
+
+L’ensemble constitue un backend évolutif, pouvant s’intégrer dans une application full stack ou un écosystème de microservices.
 
 ---
 
