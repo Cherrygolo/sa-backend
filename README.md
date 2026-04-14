@@ -1,29 +1,14 @@
 # FeelTrack - Backend
 
-`feeltrack-backend` est une API REST développée avec **Spring Boot**, permettant de gérer des avis utilisateurs et d’analyser automatiquement leur sentiment (positif, neutre ou négatif).
+Backend de l’application full stack **FeelTrack**, développé avec Spring Boot.
 
-Ce dépôt contient le backend de l’application full stack FeelTrack.  
-Le frontend (Angular) est développé dans un dépôt séparé : https://github.com/Cherrygolo/feeltrack-frontend.
-
----
-
-## 🎯 Objectifs du projet
-
-Ce projet a été conçu pour illustrer :
-
-- La conception d’une API REST avec Spring Boot, structurée et maintenable
-- Une architecture backend en couches (Controller / Service / Repository)
-- L’intégration d’un service externe d’analyse de sentiment (API Hugging Face) avec mécanisme de fallback
-- La modélisation et la persistance des données avec JPA / Hibernate
-- La mise en place d’un environnement local reproductible via Docker (base de données + outils d’administration)
-- L’application de bonnes pratiques de développement backend (séparation des responsabilités, testabilité, extensibilité)
-
-L’ensemble constitue un backend évolutif, pouvant s’intégrer dans une application full stack ou un écosystème de microservices.
+FeelTrack est une application permettant de collecter et analyser des avis utilisateurs, avec catégorisation automatique des sentiments (positif, neutre, négatif).
 
 ---
 
 ## Table des matières
 
+- [À propos](#à-propos)
 - [Fonctionnalités](#fonctionnalités)
 - [Architecture](#architecture)
 - [Prérequis](#prérequis)
@@ -38,14 +23,35 @@ L’ensemble constitue un backend évolutif, pouvant s’intégrer dans une appl
 
 ---
 
+## À propos
+
+Ce dépôt contient le backend de l’application FeelTrack.  
+Le frontend (Angular) est disponible dans un dépôt séparé :
+
+https://github.com/Cherrygolo/feeltrack-frontend
+
+
+## 🎯 Objectifs du projet
+
+Ce backend a été conçu pour :
+
+- Développer une API REST robuste avec Spring Boot
+- Structurer une architecture backend maintenable et évolutive
+- Intégrer un service externe d’analyse de sentiment (Hugging Face)
+- Gérer la persistance des données avec JPA / Hibernate
+- Fournir une base backend compatible avec une application full stack
+
+---
+
 ## Fonctionnalités
 
-- Soumission d’avis clients via une API REST
-- Analyse automatique du sentiment du texte
-- Persistance des avis et des clients en base de données
-- Consultation et filtrage des avis par type de sentiment
-- Intégration d’un service d’analyse externe avec gestion des erreurs
-- Tests unitaires et d’intégration (JUnit, MockMvc)
+- 📝 Création et gestion d’avis utilisateurs via API REST
+- 👤 Gestion des clients associés aux avis
+- 🤖 Analyse automatique du sentiment (POSITIF / NEUTRE / NÉGATIF)
+- 🔄 Fallback interne si le service d’IA externe est indisponible
+- 📊 Consultation et filtrage des avis par type de sentiment
+- 📈 Statistiques globales des avis
+- 🧪 Tests unitaires et d’intégration (JUnit, MockMvc)
 
 ---
 
