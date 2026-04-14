@@ -1,6 +1,6 @@
-# Sentiment Analysis Backend (sa-backend)
+# Sentiment Analysis Backend (feeltrack-backend)
 
-`sa-backend` est une API REST développée avec **Spring Boot**, permettant d’enregistrer des avis clients et d’en analyser automatiquement le sentiment (positif, neutre ou négatif).
+`feeltrack-backend` est une API REST développée avec **Spring Boot**, permettant d’enregistrer des avis clients et d’en analyser automatiquement le sentiment (positif, neutre ou négatif).
 
 Ce projet a pour objectif de démontrer la conception d’un **backend Java moderne**, structuré et extensible, prêt à être intégré dans une application front-end (Angular, React…) ou dans un écosystème de microservices.
 
@@ -91,8 +91,8 @@ src/
 ### 1. Cloner le dépôt
 
 ```bash
-git clone https://github.com/Cherrygolo/sa-backend.git
-cd sa-backend
+git clone https://github.com/Cherrygolo/feeltrack-backend.git
+cd feeltrack-backend
 ```
 
 ### 2. Lancer l’infrastructure (base de données)
