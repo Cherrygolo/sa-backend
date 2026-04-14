@@ -1,4 +1,4 @@
-# Sentiment Analysis Backend (feeltrack-backend)
+# FeelTrack - Backend
 
 `feeltrack-backend` est une API REST développée avec **Spring Boot**, permettant de gérer des avis utilisateurs et d’analyser automatiquement leur sentiment (positif, neutre ou négatif).
 
