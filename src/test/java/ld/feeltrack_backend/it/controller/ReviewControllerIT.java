@@ -77,11 +77,12 @@ class ReviewControllerIT {
     //region ------------ CREATE REVIEW ------------
 
     @Test
-    void createReview_shouldCreateReviewAndAssignTypeAutomatically() throws Exception {
+    void createReview_shouldCreateReviewAndAssignTypeAndCreatedAt() throws Exception {
+
         Review reviewToCreate = ReviewTestBuilder.aReview()
             .withCustomer(persistedCustomer)
             .withText("Très bonne expérience !")
-            .build(); // pas d'ID, la DB le gère
+            .build();
 
         mockMvc.perform(post("/review")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -90,7 +91,8 @@ class ReviewControllerIT {
             .andExpect(jsonPath("$.id").isNumber())
             .andExpect(jsonPath("$.text").value("Très bonne expérience !"))
             .andExpect(jsonPath("$.customer.email").value("customer@test.com"))
-            .andExpect(jsonPath("$.type").value("POSITIVE")); // vérifie l'analyse automatique
+            .andExpect(jsonPath("$.type").value("POSITIVE"))
+            .andExpect(jsonPath("$.createdAt").isNotEmpty());
     }
 
     //endregion

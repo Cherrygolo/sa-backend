@@ -1,6 +1,7 @@
 package ld.feeltrack_backend.entity;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -10,7 +11,9 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import java.time.LocalDateTime;
 import ld.feeltrack_backend.enums.ReviewType;
+import org.hibernate.annotations.CreationTimestamp;
 
 @Entity
 @Table (name = "review")
@@ -23,6 +26,10 @@ public class Review {
 
     @Enumerated(EnumType.STRING)
     private ReviewType type;
+
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
 
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "customer_id")
@@ -58,6 +65,10 @@ public class Review {
 
     public void setType(ReviewType type) {
         this.type = type;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
     }
 
     public Customer getCustomer() {
