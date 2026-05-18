@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import ld.feeltrack_backend.dto.ReviewStatsDTO;
 import ld.feeltrack_backend.entity.Review;
 import ld.feeltrack_backend.enums.ReviewType;
+import ld.feeltrack_backend.projection.ReviewTimelineProjection;
 import ld.feeltrack_backend.service.ReviewService;
 
 
@@ -47,6 +48,14 @@ public class ReviewController {
     public ResponseEntity<ReviewStatsDTO> getReviewStats() {
         ReviewStatsDTO stats = reviewService.getReviewStats();
         return ResponseEntity.ok(stats);
+    }
+
+    @GetMapping(path = "stats/timeline")
+    public ResponseEntity<List<ReviewTimelineProjection>> getTimeLine(
+        @RequestParam(defaultValue = "30") int days
+    ) {
+        List<ReviewTimelineProjection> timeline = reviewService.getTimeline(days);
+        return ResponseEntity.ok(timeline);
     }
     
     @ResponseStatus(HttpStatus.NO_CONTENT)

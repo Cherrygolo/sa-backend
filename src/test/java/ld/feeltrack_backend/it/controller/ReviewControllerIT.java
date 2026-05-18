@@ -92,7 +92,8 @@ class ReviewControllerIT {
             .andExpect(jsonPath("$.text").value("Très bonne expérience !"))
             .andExpect(jsonPath("$.customer.email").value("customer@test.com"))
             .andExpect(jsonPath("$.type").value("POSITIVE"))
-            .andExpect(jsonPath("$.createdAt").isNotEmpty());
+            .andExpect(jsonPath("$.createdAt").isNotEmpty())
+            .andExpect(jsonPath("$.createdDate").isNotEmpty());
     }
 
     //endregion

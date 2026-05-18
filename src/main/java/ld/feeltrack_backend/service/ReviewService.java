@@ -1,5 +1,6 @@
 package ld.feeltrack_backend.service;
 
+import java.time.LocalDate;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -13,6 +14,7 @@ import ld.feeltrack_backend.entity.Review;
 import ld.feeltrack_backend.enums.ReviewType;
 import ld.feeltrack_backend.external.nlp.FeelingAnalyser;
 import ld.feeltrack_backend.projection.ReviewCountProjection;
+import ld.feeltrack_backend.projection.ReviewTimelineProjection;
 import ld.feeltrack_backend.repository.ReviewRepository;
 
 @Service
@@ -68,7 +70,7 @@ public class ReviewService {
 
     public ReviewStatsDTO getReviewStats() {
 
-    List<ReviewCountProjection> results = reviewRepository.countReviewsByType();
+        List<ReviewCountProjection> results = reviewRepository.countReviewsByType();
 
         Map<ReviewType, Long> reviewsCountByType = new EnumMap<>(ReviewType.class);
 
@@ -81,6 +83,14 @@ public class ReviewService {
             reviewsCountByType.getOrDefault(ReviewType.NEGATIVE, 0L),
             reviewsCountByType.getOrDefault(ReviewType.NEUTRAL, 0L)
         );
+    }
+
+    // Get review counts grouped by day and type for the last N days
+    public List<ReviewTimelineProjection> getTimeline(int days) {
+
+        LocalDate from = LocalDate.now().minusDays(days);
+
+        return reviewRepository.getTimeline(from);
     }
 
     public void deleteReview(int id) {
